@@ -20,16 +20,15 @@ class ProfileService {
 	 * Get the profile for the admin
 	 */
 	public async getProfile(): Promise<ApiResponse<{ admin: Admin; permissions: Permission[] }>> {
-		const response = await api.get<ApiResponse<{ admin: Admin; permissions: Permission[] }>>('/auth/admin/me');
+		const response =
+			await api.get<ApiResponse<{ admin: Admin; permissions: Permission[] }>>('/auth/admin/me');
 		return response.data;
 	}
 
-    /**
-     * Update the profile for the admin
-     */
-    public async updateProfile() {
-
-    }
+	/**
+	 * Update the profile for the admin
+	 */
+	public async updateProfile() {}
 }
 
 export const profileService = new ProfileService();

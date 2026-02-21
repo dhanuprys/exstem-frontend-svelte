@@ -9,7 +9,11 @@ export const PERMISSIONS = {
 	ADMINS_READ: 'admins:read',
 	ADMINS_WRITE: 'admins:write',
 	ROLES_READ: 'roles:read',
-	ROLES_WRITE: 'roles:write'
+	ROLES_WRITE: 'roles:write',
+	SETTINGS_READ: 'settings:read',
+	SETTINGS_WRITE: 'settings:write',
+	SUBJECTS_READ: 'subjects:read',
+	SUBJECTS_WRITE: 'subjects:write'
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

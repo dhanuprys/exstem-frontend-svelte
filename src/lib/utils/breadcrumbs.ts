@@ -21,9 +21,9 @@ export function getBreadcrumbs(pathname: string): BreadcrumbItem[] {
 
 	paths.forEach((path) => {
 		currentPath += `/${path}`;
-		
+
 		let label = labelMapping[path] || path;
-		
+
 		// Capitalize if not mapped
 		if (!labelMapping[path]) {
 			label = label.charAt(0).toUpperCase() + label.slice(1);

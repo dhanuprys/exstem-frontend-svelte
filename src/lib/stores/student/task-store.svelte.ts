@@ -1,5 +1,5 @@
 class TaskStore {
-    private questions = [];
+	private questions = [];
 }
 
 export const taskStore = new TaskStore();

@@ -59,14 +59,12 @@
 				<Field>
 					<div class="flex items-center">
 						<FieldLabel for="password-{id}">Password</FieldLabel>
-						<a href="##" class="ms-auto inline-block text-sm underline">
-							Forgot your password?
-						</a>
+						<a href="##" class="ms-auto inline-block text-sm underline"> Forgot your password? </a>
 					</div>
 					<Input id="password-{id}" type="password" required bind:value={password} />
 				</Field>
 				{#if error}
-					<div class="text-red-500 text-sm mb-2">{error}</div>
+					<div class="mb-2 text-sm text-red-500">{error}</div>
 				{/if}
 				<Field>
 					<Button type="submit" class="w-full" disabled={isLoading}>

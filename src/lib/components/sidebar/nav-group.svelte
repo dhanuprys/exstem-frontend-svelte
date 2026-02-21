@@ -1,10 +1,10 @@
 <script lang="ts">
-	import * as Collapsible from "$lib/components/ui/collapsible/index.js";
-	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-	import ChevronRightIcon from "@lucide/svelte/icons/chevron-right";
+	import * as Collapsible from '$lib/components/ui/collapsible/index.js';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import { profileStore } from '$lib/stores/admin/profile-store.svelte';
 	import type { NavItem, NavGroup } from '$lib/types/nav';
-	import { page } from "$app/stores";
+	import { page } from '$app/stores';
 
 	let {
 		group,
