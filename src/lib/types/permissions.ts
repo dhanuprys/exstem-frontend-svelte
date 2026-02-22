@@ -13,7 +13,10 @@ export const PERMISSIONS = {
 	SETTINGS_READ: 'settings:read',
 	SETTINGS_WRITE: 'settings:write',
 	SUBJECTS_READ: 'subjects:read',
-	SUBJECTS_WRITE: 'subjects:write'
+	SUBJECTS_WRITE: 'subjects:write',
+	MAJOR_READ: 'major:read',
+	MAJOR_WRITE: 'major:write',
+	MAJOR_DELETE: 'major:delete'
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

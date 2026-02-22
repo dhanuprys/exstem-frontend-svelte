@@ -2,8 +2,14 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import { examService, type Exam, type ExamTargetRule } from '$lib/services/admin/exam.service';
+	import {
+		examService,
+		type Exam,
+		type ExamResultsResponse,
+		type ExamTargetRule
+	} from '$lib/services/admin/exam.service';
 	import { classService, type Class } from '$lib/services/admin/class.service';
+	import { majorService, type Major } from '$lib/services/admin/major.service';
 	import PageHeader from '$lib/components/ui/page-header.svelte';
 	import PaginationCustom from '$lib/components/ui/pagination-custom.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -14,17 +20,17 @@
 
 	let examId = $page.params.examId as string;
 	let exam: Exam | null = $state(null);
-	let records: any[] = $state([]);
+	let records: ExamResultsResponse[] = $state([]);
 	let pagination: Pagination = $state({ page: 1, per_page: 20, total_items: 0, total_pages: 1 });
 	let isLoading = $state(true);
 	let isRefreshing = $state(false);
 
 	const RELIGION_OPTIONS = ['Islam', 'Kristen Protestan', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'];
 	const GRADE_OPTIONS = ['X', 'XI', 'XII'];
-	const MAJOR_OPTIONS = ['RPL', 'TKJ', 'DKV', 'DPIB', 'TP', 'TKR', 'TSM'];
 
 	let targetRules: ExamTargetRule[] = $state([]);
 	let classes: Class[] = $state([]);
+	let majorsList: Major[] = $state([]);
 
 	let filters = $state({
 		grade_level: '',
@@ -81,7 +87,7 @@
 				pagination.per_page,
 				cleanFilters
 			);
-			records = res.data.results || [];
+			records = res.data || [];
 			if (res.pagination) {
 				pagination = res.pagination;
 			}
@@ -117,8 +123,8 @@
 
 		for (const r of records) {
 			const row = [
-				`"${r.student_name || ''}"`,
-				`"${r.student_nisn || ''}"`,
+				`"${r.name || ''}"`,
+				`"${r.nisn || ''}"`,
 				`"${r.class_name || ''}"`,
 				r.started_at ? new Date(r.started_at).toLocaleString('id-ID') : '-',
 				r.finished_at ? new Date(r.finished_at).toLocaleString('id-ID') : '-',
@@ -127,7 +133,7 @@
 					: r.status === 'IN_PROGRESS'
 						? 'Mengerjakan'
 						: r.status,
-				r.final_score !== null ? r.final_score : '-'
+				r.score !== null ? r.score : '-'
 			];
 			csvRows.push(row.join(','));
 		}
@@ -155,6 +161,10 @@
 		classService
 			.getClasses()
 			.then((r) => (classes = r.data?.data?.classes || (r.data as any).classes || []))
+			.catch(() => {});
+		majorService
+			.getMajors()
+			.then((r) => (majorsList = r.data?.data?.majors || []))
 			.catch(() => {});
 		loadResults();
 	});
@@ -229,8 +239,8 @@
 			class="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm shadow-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none"
 		>
 			<option value="">— Jurusan —</option>
-			{#each MAJOR_OPTIONS as maj}
-				<option value={maj}>{maj}</option>
+			{#each majorsList as maj}
+				<option value={maj.code}>{maj.code} - {maj.long_name}</option>
 			{/each}
 		</select>
 		<input
@@ -280,12 +290,12 @@
 						</Table.Cell>
 					</Table.Row>
 				{:else}
-					{#each records as row (row.session_id || row.student_id)}
+					{#each records as row (row.student_id)}
 						<Table.Row>
-							<Table.Cell class="font-medium">{row.student_name}</Table.Cell>
+							<Table.Cell class="font-medium">{row.name}</Table.Cell>
 							<Table.Cell>
 								<div class="text-sm font-medium">{row.class_name || '-'}</div>
-								<div class="text-xs text-muted-foreground">{row.student_nisn}</div>
+								<div class="text-xs text-muted-foreground">{row.nisn}</div>
 							</Table.Cell>
 							<Table.Cell>
 								{#if row.started_at}
@@ -332,16 +342,16 @@
 								{/if}
 							</Table.Cell>
 							<Table.Cell class="text-right">
-								{#if row.final_score !== null}
+								{#if row.score !== null}
 									<span
-										class="text-xl font-bold {row.final_score >= 80
+										class="text-xl font-bold {row.score >= 80
 											? 'text-green-600'
-											: row.final_score < 50
+											: row.score < 50
 												? 'text-destructive'
 												: ''}"
 									>
-										<span class="tracking-tighter">{row.final_score}</span><span
-											class="ml-1 text-xs text-muted-foreground">/{row.max_score || 100}</span
+										<span class="tracking-tighter">{row.score}</span><span
+											class="ml-1 text-xs text-muted-foreground">/{100}</span
 										>
 									</span>
 								{:else}

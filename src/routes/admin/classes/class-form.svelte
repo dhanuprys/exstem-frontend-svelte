@@ -2,10 +2,12 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import type { Major } from '$lib/services/admin/major.service';
 
 	export let gradeLevel: string = '';
 	export let majorCode: string = '';
 	export let groupNumber: string = '';
+	export let majors: Major[] = [];
 
 	// Available grade levels
 	const gradeLevels = [
@@ -33,9 +35,28 @@
 	</div>
 
 	<div class="grid gap-2">
-		<Label for="majorCode">Kode Jurusan *</Label>
-		<Input id="majorCode" bind:value={majorCode} placeholder="Misal: RPL, TKJ, AKL" required />
-		<p class="text-xs text-muted-foreground">Isi dengan singkatan jurusan (maks 10 karakter).</p>
+		<Label for="majorCode">Jurusan *</Label>
+		<Select.Root type="single" value={majorCode} onValueChange={(v) => (majorCode = v)}>
+			<Select.Trigger id="majorCode">
+				{majorCode
+					? `${majorCode} - ${majors.find((m) => m.code === majorCode)?.long_name || ''}`
+					: 'Pilih jurusan'}
+			</Select.Trigger>
+			<Select.Content>
+				{#if majors.length === 0}
+					<Select.Item value="" disabled label="Tidak ada data jurusan"
+						>Tidak ada data jurusan</Select.Item
+					>
+				{:else}
+					{#each majors as major}
+						<Select.Item value={major.code} label={major.code}
+							>{major.code} - {major.long_name}</Select.Item
+						>
+					{/each}
+				{/if}
+			</Select.Content>
+		</Select.Root>
+		<p class="text-xs text-muted-foreground">Pilih jurusan dari dropdown.</p>
 	</div>
 
 	<div class="grid gap-2">

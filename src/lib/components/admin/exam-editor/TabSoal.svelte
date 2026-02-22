@@ -96,6 +96,7 @@ Warna di bagian bawah:
 
 			// Pass successfully extracted HTML to the modular format parser
 			const importedQuestions = DocxParserUtils.parseHtmlToQuestions(result.value);
+			console.log('importedQuestions', importedQuestions[0]);
 
 			if (importedQuestions.length > 0) {
 				questions = [...questions, ...importedQuestions];

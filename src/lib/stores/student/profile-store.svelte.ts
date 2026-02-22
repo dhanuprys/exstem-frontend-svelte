@@ -54,12 +54,14 @@ class ProfileStore {
 	}
 
 	logout() {
-		this.student = null;
 		if (browser) {
-			localStorage.removeItem(STORAGE_KEYS.TOKEN);
-			localStorage.removeItem(STORAGE_KEYS.STUDENT);
+			profileService.logout().finally(() => {
+				localStorage.removeItem(STORAGE_KEYS.TOKEN);
+				localStorage.removeItem(STORAGE_KEYS.STUDENT);
+				this.student = null;
+				goto('/login');
+			});
 		}
-		goto('/login');
 	}
 }
 

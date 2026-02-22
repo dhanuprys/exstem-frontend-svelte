@@ -7,6 +7,7 @@
 	import ShieldCheckIcon from '@lucide/svelte/icons/shield-check';
 	import FileTextIcon from '@lucide/svelte/icons/file-text';
 	import SettingsIcon from '@lucide/svelte/icons/settings';
+	import BriefcaseIcon from '@lucide/svelte/icons/briefcase';
 	import { PERMISSIONS } from '$lib/types/permissions';
 
 	// This is sample data.
@@ -67,6 +68,12 @@
 						url: '/admin/subjects',
 						icon: BookOpenIcon,
 						requiredPermission: PERMISSIONS.SUBJECTS_READ
+					},
+					{
+						title: 'Jurusan',
+						url: '/admin/majors',
+						icon: BriefcaseIcon,
+						requiredPermission: PERMISSIONS.MAJOR_READ
 					},
 					{
 						title: 'Pengaturan App',

@@ -74,7 +74,7 @@
 			toast.success('Ujian berhasil dibuat');
 			isCreateDialogOpen = false;
 			// Navigate directly to the editor for this new exam
-			goto(`/admin/exams/${newExam.id}/edit`);
+			goto(`/admin/exams/${newExam.data.id}/edit`);
 		} catch (error: any) {
 			toast.error(error.response?.data?.error?.message || 'Gagal membuat ujian');
 		} finally {

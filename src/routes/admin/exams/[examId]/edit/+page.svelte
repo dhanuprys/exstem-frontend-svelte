@@ -9,6 +9,7 @@
 		type Question
 	} from '$lib/services/admin/exam.service';
 	import { classService, type Class } from '$lib/services/admin/class.service';
+	import { majorService, type Major } from '$lib/services/admin/major.service';
 	import { subjectService, type Subject } from '$lib/services/admin/subject.service';
 	import PageHeader from '$lib/components/ui/page-header.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -25,6 +26,7 @@
 	let questions: Question[] = $state([]);
 	let classes: Class[] = $state([]);
 	let subjects: Subject[] = $state([]);
+	let majorsList: Major[] = $state([]);
 
 	let isLoading = $state(true);
 	let isSaving = $state(false);
@@ -40,11 +42,6 @@
 	let formScheduledEnd = $state('');
 	let formToken = $state('');
 
-	// --- Tab 2: Target Rules State ---
-	const RELIGION_OPTIONS = ['Islam', 'Kristen Protestan', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'];
-	const GRADE_OPTIONS = ['X', 'XI', 'XII'];
-	const MAJOR_OPTIONS = ['RPL', 'TKJ', 'DKV', 'DPIB', 'TP', 'TKR', 'TSM'];
-
 	// --- Tab 3: Soal State ---
 	let activeQuestionIndex = $state(0);
 
@@ -52,7 +49,7 @@
 		isLoading = true;
 		try {
 			// Load Exam
-			exam = await examService.getExam(examId);
+			exam = (await examService.getExam(examId)).data;
 			if (!exam) return;
 
 			formTitle = exam.title;
@@ -74,6 +71,9 @@
 
 			const resSubjects = await subjectService.getSubjects();
 			subjects = resSubjects.data.data.subjects || [];
+
+			const resMajors = await majorService.getMajors();
+			majorsList = resMajors.data.data.majors || [];
 		} catch (error) {
 			toast.error('Gagal memuat data ujian');
 			goto('/admin/exams');
@@ -82,7 +82,7 @@
 		}
 	}
 
-	async function saveInformasi() {
+	async function saveInformation() {
 		isSaving = true;
 		try {
 			await examService.updateExam(examId, {
@@ -97,8 +97,9 @@
 			});
 			toast.success('Informasi ujian berhasil disimpan');
 			if (exam) exam.status = 'DRAFT';
-		} catch (err) {
-			toast.error('Gagal menyimpan informasi');
+		} catch (err: any) {
+			const message = err.response?.data?.error?.message || 'Gagal menyimpan informasi';
+			toast.error(message);
 		} finally {
 			isSaving = false;
 		}
@@ -293,7 +294,7 @@
 					bind:formScheduledEnd
 					{subjects}
 					{isSaving}
-					onsave={saveInformasi}
+					onsave={saveInformation}
 				/>
 			{/if}
 
@@ -301,6 +302,7 @@
 				<TabTarget
 					bind:targetRules
 					{classes}
+					{majorsList}
 					{isSaving}
 					onsave={saveTargetRules}
 					onadd={addTargetRule}

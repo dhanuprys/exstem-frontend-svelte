@@ -4,20 +4,29 @@
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import * as Accordion from '$lib/components/ui/accordion/index.js';
 
-	export let name: string = '';
-	export let permissions: string[] = []; // Current selected permissions
-	export let allPermissions: string[] = []; // List of all system permission codes
-	export let isEdit: boolean = false;
+	let {
+		name = $bindable(),
+		permissions = $bindable([]),
+		allPermissions = $bindable([]),
+		isEdit = $bindable(false)
+	}: {
+		name: string;
+		permissions: string[];
+		allPermissions: string[];
+		isEdit: boolean;
+	} = $props();
 
 	// Helper to group permissions by their prefix (e.g., 'users:read' -> 'users')
-	$: groupedPermissions = allPermissions.reduce(
-		(acc, perm) => {
-			const [group] = perm.split(':');
-			if (!acc[group]) acc[group] = [];
-			acc[group].push(perm);
-			return acc;
-		},
-		{} as Record<string, string[]>
+	let groupedPermissions = $derived(
+		allPermissions.reduce(
+			(acc, perm) => {
+				const [group] = perm.split(':');
+				if (!acc[group]) acc[group] = [];
+				acc[group].push(perm);
+				return acc;
+			},
+			{} as Record<string, string[]>
+		)
 	);
 
 	function togglePermission(perm: string, checked: boolean) {

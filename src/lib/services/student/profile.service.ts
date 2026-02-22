@@ -20,6 +20,13 @@ class ProfileService {
 	public async getProfile(): Promise<ApiResponse<{ student: Student }>> {
 		return await api.get('/auth/student/me').then((res) => res.data);
 	}
+
+	/**
+	 * Logout the student
+	 */
+	public async logout(): Promise<ApiResponse<void>> {
+		return await api.post('/auth/student/logout').then((res) => res.data);
+	}
 }
 
 export const profileService = new ProfileService();

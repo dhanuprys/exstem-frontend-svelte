@@ -79,7 +79,15 @@
 						'prose prose-sm sm:prose-base dark:prose-invert focus:outline-none max-w-none min-h-[150px] p-4'
 				},
 				handlePaste: (view, event, slice) => {
-					return handleFileUpload(event.clipboardData?.files, view, event);
+					// First try to handle raw image files from clipboard (direct image paste)
+					if (handleFileUpload(event.clipboardData?.files, view, event)) {
+						return true;
+					}
+					// If no raw files, let TipTap handle the HTML paste normally.
+					// After TipTap processes the paste, we scan for embedded base64 images
+					// (from Word/Google Docs paste) and upload them asynchronously.
+					setTimeout(() => uploadBase64Images(), 100);
+					return false;
 				},
 				handleDrop: (view, event, slice, moved) => {
 					if (!moved) {
@@ -96,6 +104,64 @@
 			editor.destroy();
 		}
 	});
+
+	/**
+	 * Scans the editor DOM for any <img> with a base64 `data:` src,
+	 * uploads each to the server, and replaces the src in the editor.
+	 * This handles pasting from Word/Google Docs which embed images as data URIs.
+	 */
+	async function uploadBase64Images() {
+		if (!editor) return;
+
+		const editorElement = editor.view.dom as HTMLElement;
+		const base64Imgs = editorElement.querySelectorAll('img[src^="data:"]');
+		if (base64Imgs.length === 0) return;
+
+		for (const img of base64Imgs) {
+			const src = img.getAttribute('src');
+			if (!src) continue;
+
+			try {
+				// Convert data URI to Blob
+				const res = await fetch(src);
+				const blob = await res.blob();
+				const ext = blob.type.split('/')[1] || 'png';
+				const file = new File([blob], `paste-${Date.now()}.${ext}`, { type: blob.type });
+
+				const formData = new FormData();
+				formData.append('file', file);
+
+				const uploadRes = await api.post('/admin/media/upload', formData, {
+					headers: { 'Content-Type': 'multipart/form-data' }
+				});
+
+				const url = uploadRes.data?.data?.url;
+				if (url) {
+					// Replace the base64 src with the uploaded server URL directly in the editor
+					// by finding the img node in the ProseMirror document and updating its src
+					const { state } = editor.view;
+					const { tr } = state;
+					let updated = false;
+
+					state.doc.descendants((node, pos) => {
+						if (node.type.name === 'image' && node.attrs.src === src) {
+							tr.setNodeMarkup(pos, undefined, {
+								...node.attrs,
+								src: overrideAssetPath(url)
+							});
+							updated = true;
+						}
+					});
+
+					if (updated) {
+						editor.view.dispatch(tr);
+					}
+				}
+			} catch (err) {
+				console.error('Failed to upload base64 image:', err);
+			}
+		}
+	}
 
 	function handleFileUpload(files: FileList | null | undefined, view: any, event: Event): boolean {
 		if (!files || files.length === 0) return false;
@@ -125,7 +191,6 @@
 				}
 			} catch (err) {
 				console.error('Image upload failed:', err);
-				// fallback: might want to show a toast message here
 			}
 		});
 

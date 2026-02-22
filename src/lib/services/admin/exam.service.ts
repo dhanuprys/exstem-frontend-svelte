@@ -43,7 +43,14 @@ export interface Exam {
 }
 
 export interface ExamResultsResponse {
-	results: any[];
+	student_id: number;
+	name: string;
+	nisn: string;
+	class_name: string;
+	score: number;
+	status: string;
+	started_at: string;
+	finished_at: string;
 }
 
 class ExamService {
@@ -55,18 +62,18 @@ class ExamService {
 	}
 
 	public async getExam(id: string) {
-		const res = await api.get<{ data: { exam: Exam } }>(`/admin/exams/${id}`);
-		return res.data.data.exam;
+		const res = await api.get<ApiResponse<Exam>>(`/admin/exams/${id}`);
+		return res.data;
 	}
 
 	public async createExam(data: Partial<Exam>) {
-		const res = await api.post<{ data: { exam: Exam } }>('/admin/exams', data);
-		return res.data.data.exam;
+		const res = await api.post<ApiResponse<Exam>>('/admin/exams', data);
+		return res.data;
 	}
 
 	public async updateExam(id: string, data: Partial<Exam>) {
-		const res = await api.put<{ data: { exam: Exam } }>(`/admin/exams/${id}`, data);
-		return res.data.data.exam;
+		const res = await api.put<ApiResponse<Exam>>(`/admin/exams/${id}`, data);
+		return res.data;
 	}
 
 	public async deleteExam(id: string) {
@@ -85,35 +92,33 @@ class ExamService {
 	}
 
 	public async addTargetRule(examId: string, rule: Partial<ExamTargetRule>) {
-		const res = await api.post<{ data: { target_rule: ExamTargetRule } }>(
+		const res = await api.post<ApiResponse<ExamTargetRule>>(
 			`/admin/exams/${examId}/target-rules`,
 			rule
 		);
-		return res.data.data.target_rule;
+		return res.data;
 	}
 
 	public async getTargetRules(examId: string) {
-		const res = await api.get<{ data: { target_rules: ExamTargetRule[] } }>(
-			`/admin/exams/${examId}/target-rules`
-		);
-		return res.data?.data?.target_rules || [];
+		const res = await api.get<ApiResponse<ExamTargetRule[]>>(`/admin/exams/${examId}/target-rules`);
+		return res.data?.data || [];
 	}
 
 	public async getQuestions(examId: string) {
-		const res = await api.get<{ data: { questions: Question[] } }>(
-			`/admin/exams/${examId}/questions`
-		);
-		return res.data.data.questions;
+		const res = await api.get<ApiResponse<Question[]>>(`/admin/exams/${examId}/questions`);
+		return res.data?.data || [];
 	}
 
 	public async replaceQuestions(examId: string, questions: Partial<Question>[]) {
-		const res = await api.put(`/admin/exams/${examId}/questions`, { questions });
-		return res.data;
+		const res = await api.put<ApiResponse<Question[]>>(`/admin/exams/${examId}/questions`, {
+			questions
+		});
+		return res.data?.data || [];
 	}
 
 	public async createQuestion(examId: string, question: Partial<Question>) {
-		const res = await api.post(`/admin/exams/${examId}/questions`, question);
-		return res.data;
+		const res = await api.post<ApiResponse<Question>>(`/admin/exams/${examId}/questions`, question);
+		return res.data?.data;
 	}
 
 	public async updateQuestion() {}
@@ -131,12 +136,9 @@ class ExamService {
 			religion?: string;
 		}
 	) {
-		const res = await api.get<{ data: ExamResultsResponse; pagination: Pagination }>(
-			`/admin/exams/${id}/results`,
-			{
-				params: { page, per_page: perPage, ...filters }
-			}
-		);
+		const res = await api.get<ApiResponse<ExamResultsResponse[]>>(`/admin/exams/${id}/results`, {
+			params: { page, per_page: perPage, ...filters }
+		});
 		return res.data;
 	}
 }

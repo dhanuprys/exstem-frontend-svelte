@@ -6,11 +6,13 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { classService, type Class } from '$lib/services/admin/class.service';
+	import { majorService, type Major } from '$lib/services/admin/major.service';
 	import ClassForm from './class-form.svelte';
 	import { toast } from 'svelte-sonner';
 	import { Plus, Pencil, Trash2, Loader2, Users } from '@lucide/svelte';
 
 	let classesList: Class[] = $state([]);
+	let majorsList: Major[] = $state([]);
 	let isLoading = $state(false);
 	let isSaving = $state(false);
 
@@ -30,10 +32,14 @@
 	async function loadData() {
 		isLoading = true;
 		try {
-			const res = await classService.getClasses();
-			classesList = res.data.data.classes || [];
+			const [classRes, majorRes] = await Promise.all([
+				classService.getClasses(),
+				majorService.getMajors()
+			]);
+			classesList = classRes.data.data.classes || [];
+			majorsList = majorRes.data.data.majors || [];
 		} catch (error) {
-			toast.error('Gagal memuat data kelas');
+			toast.error('Gagal memuat data kelas dan jurusan');
 		} finally {
 			isLoading = false;
 		}
@@ -188,6 +194,7 @@
 				bind:gradeLevel={formGradeLevel}
 				bind:majorCode={formMajorCode}
 				bind:groupNumber={formGroupNumber}
+				majors={majorsList}
 			/>
 			<Dialog.Footer>
 				<Button type="submit" onclick={handleSubmit} disabled={isSaving}>

@@ -3,10 +3,12 @@
 	import { Loader2, Save, Plus, Trash2, Users } from '@lucide/svelte';
 	import type { ExamTargetRule } from '$lib/services/admin/exam.service';
 	import type { Class } from '$lib/services/admin/class.service';
+	import type { Major } from '$lib/services/admin/major.service';
 
 	let {
 		targetRules = $bindable(),
 		classes,
+		majorsList,
 		isSaving,
 		onsave,
 		onadd,
@@ -14,6 +16,7 @@
 	} = $props<{
 		targetRules: ExamTargetRule[];
 		classes: Class[];
+		majorsList: Major[];
 		isSaving: boolean;
 		onsave: () => void;
 		onadd: () => void;
@@ -22,7 +25,6 @@
 
 	const RELIGION_OPTIONS = ['Islam', 'Kristen Protestan', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'];
 	const GRADE_OPTIONS = ['X', 'XI', 'XII'];
-	const MAJOR_OPTIONS = ['RPL', 'TKJ', 'DKV', 'DPIB', 'TP', 'TKR', 'TSM'];
 </script>
 
 <div class="rounded-xl border bg-card p-8 shadow-sm">
@@ -121,8 +123,8 @@
 								class="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm font-medium shadow-sm transition-all focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none"
 							>
 								<option value={null}>— Bebas —</option>
-								{#each MAJOR_OPTIONS as maj}
-									<option value={maj}>{maj}</option>
+								{#each majorsList as major}
+									<option value={major.code}>{major.code} - {major.long_name}</option>
 								{/each}
 							</select>
 						</div>

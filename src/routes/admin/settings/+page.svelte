@@ -16,6 +16,7 @@
 	import { mediaService } from '$lib/services/admin/media.service';
 	import { toast } from 'svelte-sonner';
 	import { Loader2, Upload } from '@lucide/svelte';
+	import { overrideAssetPath } from '$lib/utils/assets';
 
 	let isLoading = $state(true);
 	let isSaving = $state(false);
@@ -137,9 +138,9 @@
 							>
 								{#if settings.school_logo_url}
 									<img
-										src={settings.school_logo_url}
+										src={overrideAssetPath(settings.school_logo_url)}
 										alt="Logo Sekolah"
-										class="h-full w-full object-cover"
+										class="h-full w-full object-contain"
 									/>
 								{:else}
 									<span class="text-xs text-muted-foreground">Tidak Ada Logo</span>
