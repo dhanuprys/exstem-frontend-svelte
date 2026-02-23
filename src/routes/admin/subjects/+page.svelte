@@ -29,7 +29,7 @@
 		isLoading = true;
 		try {
 			const res = await subjectService.getSubjects();
-			subjectsList = res.data.data.subjects || [];
+			subjectsList = res.data.data || [];
 		} catch (error: any) {
 			toast.error('Gagal memuat daftar mata pelajaran');
 		} finally {
@@ -105,6 +105,10 @@
 		loadData();
 	});
 </script>
+
+<svelte:head>
+	<title>Kelola Mapel - Exstem</title>
+</svelte:head>
 
 <div class="flex h-full flex-1 flex-col space-y-8 p-8">
 	<PageHeader title="Mata Pelajaran" description="Kelola daftar mata pelajaran yang akan diujikan.">

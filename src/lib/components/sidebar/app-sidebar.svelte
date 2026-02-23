@@ -64,6 +64,12 @@
 						requiredPermission: PERMISSIONS.EXAMS_READ
 					},
 					{
+						title: 'Bank Soal',
+						url: '/admin/qbanks',
+						icon: FileTextIcon,
+						requiredPermission: PERMISSIONS.QBANKS_READ
+					},
+					{
 						title: 'Mata Pelajaran',
 						url: '/admin/subjects',
 						icon: BookOpenIcon,

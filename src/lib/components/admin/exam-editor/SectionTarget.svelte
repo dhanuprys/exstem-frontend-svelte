@@ -12,7 +12,8 @@
 		isSaving,
 		onsave,
 		onadd,
-		onremove
+		onremove,
+		onupdate
 	} = $props<{
 		targetRules: ExamTargetRule[];
 		classes: Class[];
@@ -21,6 +22,7 @@
 		onsave: () => void;
 		onadd: () => void;
 		onremove: (index: number) => void;
+		onupdate: (rule: ExamTargetRule) => void;
 	}>();
 
 	const RELIGION_OPTIONS = ['Islam', 'Kristen Protestan', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'];
@@ -86,6 +88,7 @@
 							<select
 								id={`class_id_${i}`}
 								bind:value={rule.class_id}
+								onchange={() => rule.id && onupdate(rule)}
 								class="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm font-medium shadow-sm transition-all focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none"
 							>
 								<option value={null}>— Bebas / Berlaku Semua —</option>
@@ -105,6 +108,7 @@
 							<select
 								id={`grade_${i}`}
 								bind:value={rule.grade_level}
+								onchange={() => rule.id && onupdate(rule)}
 								class="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm font-medium shadow-sm transition-all focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none"
 							>
 								<option value={null}>— Bebas —</option>
@@ -120,6 +124,7 @@
 							<select
 								id={`major_${i}`}
 								bind:value={rule.major_code}
+								onchange={() => rule.id && onupdate(rule)}
 								class="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm font-medium shadow-sm transition-all focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none"
 							>
 								<option value={null}>— Bebas —</option>
@@ -135,6 +140,7 @@
 							<select
 								id={`religion_${i}`}
 								bind:value={rule.religion}
+								onchange={() => rule.id && onupdate(rule)}
 								class="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm font-medium shadow-sm transition-all focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none"
 							>
 								<option value={null}>— Bebas —</option>
@@ -147,11 +153,18 @@
 				</div>
 			{/each}
 		</div>
-		<div class="mt-8 flex justify-end">
-			<Button onclick={onsave} disabled={isSaving} size="lg" class="w-full font-semibold sm:w-auto">
-				{#if isSaving}<Loader2 class="mr-2 h-5 w-5 animate-spin" />{/if}
-				<Save class="mr-2 h-5 w-5" /> Simpan Konfigurasi Target
-			</Button>
-		</div>
+		{#if targetRules.length > 0 && targetRules.some((r: ExamTargetRule) => !r.id)}
+			<div class="mt-8 flex justify-end">
+				<Button
+					onclick={onsave}
+					disabled={isSaving}
+					size="lg"
+					class="w-full font-semibold sm:w-auto"
+				>
+					{#if isSaving}<Loader2 class="mr-2 h-5 w-5 animate-spin" />{/if}
+					<Save class="mr-2 h-5 w-5" /> Simpan Aturan Target Baru
+				</Button>
+			</div>
+		{/if}
 	{/if}
 </div>

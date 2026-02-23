@@ -47,7 +47,7 @@
 					errorMessage = 'Token salah. Periksa kembali token dari Pengawas.';
 					break;
 				case 'EXAM_NOT_AVAILABLE':
-					errorMessage = 'Ujian tidak tersedia atau belum dimulai.';
+					errorMessage = 'Ujian tidak tersedia, belum dimulai, atau waktu telah habis.';
 					break;
 				default:
 					errorMessage = 'Gagal bergabung. Silakan coba lagi.';
@@ -63,6 +63,10 @@
 		}
 	}
 </script>
+
+<svelte:head>
+	<title>Mulai Ujian - Exstem</title>
+</svelte:head>
 
 <div class="mx-auto max-w-5xl px-6 py-8 md:py-12">
 	<!-- Back Link -->
@@ -84,7 +88,7 @@
 		</div>
 
 		<div class="grid gap-8 lg:grid-cols-5">
-			<div class="col-span-3 grid gap-4">
+			<div class="col-span-full grid gap-4 md:col-span-3">
 				<!-- Rule 1: Anti-cheat -->
 				<div class="flex gap-4 px-5 py-3">
 					<div
@@ -151,7 +155,7 @@
 				</div>
 			</div>
 			<!-- Right Col: The Action Box -->
-			<div class="lg:col-span-2">
+			<div class="col-span-full lg:col-span-2">
 				<div class="sticky top-6 overflow-hidden rounded-2xl border bg-card shadow-2xl">
 					<!-- Header -->
 					<div class="border-b bg-primary/5 p-6 text-center">

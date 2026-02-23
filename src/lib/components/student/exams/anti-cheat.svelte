@@ -1,8 +1,21 @@
 <script lang="ts">
 	import type { CheatPayload } from '$lib/types/cheat';
+	import { BlocksIcon, ShieldAlertIcon } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 
-	let { onCheatCapture }: { onCheatCapture: (payload: CheatPayload) => void } = $props();
+	let {
+		onCheatCapture,
+		cheatRules = {}
+	}: {
+		onCheatCapture: (payload: CheatPayload) => void;
+		cheatRules: Record<string, boolean>;
+	} = $props();
+
+	function isRuleActive(key: string): boolean {
+		// If cheatRules is empty (no rules from backend), default ALL rules to active
+		if (Object.keys(cheatRules).length === 0) return true;
+		return cheatRules[key] === true;
+	}
 
 	const RESIZE_THRESHOLD = 100;
 	const DEV_TOOLS_THRESHOLD = 160;
@@ -39,117 +52,154 @@
 		initialOuterHeight = window.outerHeight;
 
 		console.log(
-			'%c 🛡️ Exam Security Active ',
-			'background: #ef4444; color: #fff; font-weight: bold; padding: 4px; border-radius: 4px;'
+			'%c 🛡️ ANTI CHEAT ACTIVE 🛡️ ',
+			'font-size: 1rem; background: #ef4444; color: #fff; font-weight: bold; padding: 4px; border-radius: 4px;'
 		);
 
-		// 1. Tab Switching
-		const handleVisibilityChange = () => {
-			if (document.hidden) {
-				triggerCheat('VISIBILITY_HIDDEN', 'HIGH', { reason: 'Tab hidden' });
-			}
-		};
+		// ─── Build Listeners Conditionally ───────────────────────────
+		const cleanups: (() => void)[] = [];
 
-		// 2. Window Blur
-		const handleBlur = () => {
-			triggerCheat('WINDOW_BLUR', 'MEDIUM', { reason: 'Window lost focus' });
-		};
+		// 1. Tab Switching (visibility_hidden)
+		if (isRuleActive('visibility_hidden')) {
+			const handleVisibilityChange = () => {
+				if (document.hidden) {
+					triggerCheat('VISIBILITY_HIDDEN', 'HIGH', { reason: 'Tab hidden' });
+				}
+			};
+			document.addEventListener('visibilitychange', handleVisibilityChange);
+			cleanups.push(() => document.removeEventListener('visibilitychange', handleVisibilityChange));
+		}
 
-		// 3. Resize & DevTools
-		const handleResize = () => {
-			clearTimeout(resizeTimeout);
-			resizeTimeout = setTimeout(() => {
-				const currentOuterWidth = window.outerWidth;
-				const currentOuterHeight = window.outerHeight;
-				const currentInnerWidth = window.innerWidth;
-				const currentInnerHeight = window.innerHeight;
+		// 2. Window Blur (window_blur)
+		if (isRuleActive('window_blur')) {
+			const handleBlur = () => {
+				triggerCheat('WINDOW_BLUR', 'MEDIUM', { reason: 'Window lost focus' });
+			};
+			window.addEventListener('blur', handleBlur);
+			cleanups.push(() => window.removeEventListener('blur', handleBlur));
+		}
 
-				const widthDiff = Math.abs(currentOuterWidth - initialOuterWidth);
-				const heightDiff = Math.abs(currentOuterHeight - initialOuterHeight);
+		// 3. Resize & DevTools (window_resize + dev_tools)
+		if (isRuleActive('window_resize') || isRuleActive('dev_tools')) {
+			const handleResize = () => {
+				clearTimeout(resizeTimeout);
+				resizeTimeout = setTimeout(() => {
+					const currentOuterWidth = window.outerWidth;
+					const currentOuterHeight = window.outerHeight;
+					const currentInnerWidth = window.innerWidth;
+					const currentInnerHeight = window.innerHeight;
 
-				if (widthDiff > RESIZE_THRESHOLD || heightDiff > RESIZE_THRESHOLD) {
-					triggerCheat('WINDOW_RESIZE', 'MEDIUM', {
-						initial: `${initialOuterWidth}x${initialOuterHeight}`,
-						current: `${currentOuterWidth}x${currentOuterHeight}`
-					});
-					initialOuterWidth = currentOuterWidth;
-					initialOuterHeight = currentOuterHeight;
+					if (isRuleActive('window_resize')) {
+						const widthDiff = Math.abs(currentOuterWidth - initialOuterWidth);
+						const heightDiff = Math.abs(currentOuterHeight - initialOuterHeight);
+
+						if (widthDiff > RESIZE_THRESHOLD || heightDiff > RESIZE_THRESHOLD) {
+							triggerCheat('WINDOW_RESIZE', 'MEDIUM', {
+								initial: `${initialOuterWidth}x${initialOuterHeight}`,
+								current: `${currentOuterWidth}x${currentOuterHeight}`
+							});
+							initialOuterWidth = currentOuterWidth;
+							initialOuterHeight = currentOuterHeight;
+						}
+					}
+
+					if (isRuleActive('dev_tools')) {
+						const widthGap = currentOuterWidth - currentInnerWidth;
+						const heightGap = currentOuterHeight - currentInnerHeight;
+
+						if (widthGap > DEV_TOOLS_THRESHOLD || heightGap > DEV_TOOLS_THRESHOLD) {
+							triggerCheat('DEV_TOOLS_HEURISTIC', 'HIGH', {
+								reason: 'Viewport shrank unexpectedly',
+								gap: `${widthGap}px x ${heightGap}px`
+							});
+						}
+					}
+				}, 500);
+			};
+			window.addEventListener('resize', handleResize);
+			cleanups.push(() => {
+				window.removeEventListener('resize', handleResize);
+				clearTimeout(resizeTimeout);
+			});
+		}
+
+		// 4. Clipboard (clipboard)
+		if (isRuleActive('clipboard')) {
+			const preventClipboard = (e: Event) => {
+				e.preventDefault();
+				e.stopPropagation();
+				triggerCheat('CLIPBOARD', 'LOW', { action: e.type });
+				return false;
+			};
+			document.addEventListener('copy', preventClipboard, true);
+			document.addEventListener('cut', preventClipboard, true);
+			document.addEventListener('paste', preventClipboard, true);
+			cleanups.push(() => {
+				document.removeEventListener('copy', preventClipboard, true);
+				document.removeEventListener('cut', preventClipboard, true);
+				document.removeEventListener('paste', preventClipboard, true);
+			});
+		}
+
+		// 5. Context Menu (context_menu)
+		if (isRuleActive('context_menu')) {
+			const preventContext = (e: Event) => {
+				e.preventDefault();
+				e.stopPropagation();
+				triggerCheat('CONTEXT_MENU', 'LOW', { action: e.type });
+				return false;
+			};
+			document.addEventListener('contextmenu', preventContext, true);
+			cleanups.push(() => document.removeEventListener('contextmenu', preventContext, true));
+		}
+
+		// 6. Keyboard Shortcuts (forbidden_key + dev_tools + clipboard)
+		{
+			const handleKeydown = (e: KeyboardEvent) => {
+				const forbiddenKeys = ['F12', 'PrintScreen', 'ContextMenu', 'Meta'];
+
+				// DevTools shortcuts
+				if (isRuleActive('dev_tools')) {
+					if (
+						(e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) ||
+						(e.ctrlKey && e.key.toLowerCase() === 'u')
+					) {
+						e.preventDefault();
+						triggerCheat('DEV_TOOLS_HEURISTIC', 'HIGH', { key: 'DevTools Shortcut' });
+						return;
+					}
 				}
 
-				const widthGap = currentOuterWidth - currentInnerWidth;
-				const heightGap = currentOuterHeight - currentInnerHeight;
-
-				if (widthGap > DEV_TOOLS_THRESHOLD || heightGap > DEV_TOOLS_THRESHOLD) {
-					triggerCheat('DEV_TOOLS_HEURISTIC', 'HIGH', {
-						reason: 'Viewport shrank unexpectedly',
-						gap: `${widthGap}px x ${heightGap}px`
-					});
+				// Clipboard shortcuts
+				if (isRuleActive('clipboard')) {
+					if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'x'].includes(e.key.toLowerCase())) {
+						e.preventDefault();
+						triggerCheat('CLIPBOARD', 'LOW', { key: `Ctrl+${e.key.toUpperCase()}` });
+						return;
+					}
 				}
-			}, 500);
-		};
 
-		// 4. Clipboard & Context Menu
-		const preventAndReport = (e: Event, type: CheatPayload['type']) => {
-			e.preventDefault(); // <--- This BLOCKS the action (e.g. Right Click)
-			e.stopPropagation();
-			triggerCheat(type, 'LOW', { action: e.type });
-			return false;
-		};
+				// Window blur via Alt+Tab
+				if (isRuleActive('window_blur')) {
+					if (e.altKey && e.key === 'Tab') {
+						triggerCheat('WINDOW_BLUR', 'MEDIUM', { key: 'Alt+Tab' });
+					}
+				}
 
-		// 5. Keyboard Shortcuts
-		const handleKeydown = (e: KeyboardEvent) => {
-			const forbiddenKeys = ['F12', 'PrintScreen', 'ContextMenu', 'Meta'];
-
-			if (
-				(e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) ||
-				(e.ctrlKey && e.key.toLowerCase() === 'u')
-			) {
-				e.preventDefault();
-				triggerCheat('DEV_TOOLS_HEURISTIC', 'HIGH', { key: 'DevTools Shortcut' });
-				return;
-			}
-
-			if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'x'].includes(e.key.toLowerCase())) {
-				e.preventDefault();
-				triggerCheat('CLIPBOARD', 'LOW', { key: `Ctrl+${e.key.toUpperCase()}` });
-				return;
-			}
-
-			if (e.altKey && e.key === 'Tab') {
-				triggerCheat('WINDOW_BLUR', 'MEDIUM', { key: 'Alt+Tab' });
-			}
-
-			if (forbiddenKeys.includes(e.key)) {
-				e.preventDefault();
-				triggerCheat('FORBIDDEN_KEY', 'MEDIUM', { key: e.key });
-			}
-		};
-
-		// Attach Listeners
-		document.addEventListener('visibilitychange', handleVisibilityChange);
-		window.addEventListener('blur', handleBlur);
-		window.addEventListener('resize', handleResize);
-
-		// Use capture=true to ensure we intercept events before inputs see them
-		document.addEventListener('copy', (e) => preventAndReport(e, 'CLIPBOARD'), true);
-		document.addEventListener('cut', (e) => preventAndReport(e, 'CLIPBOARD'), true);
-		document.addEventListener('paste', (e) => preventAndReport(e, 'CLIPBOARD'), true);
-
-		// This line replaces the <svelte:window> tag you deleted
-		document.addEventListener('contextmenu', (e) => preventAndReport(e, 'CONTEXT_MENU'), true);
-
-		window.addEventListener('keydown', handleKeydown, true);
+				// Forbidden keys
+				if (isRuleActive('forbidden_key')) {
+					if (forbiddenKeys.includes(e.key)) {
+						e.preventDefault();
+						triggerCheat('FORBIDDEN_KEY', 'MEDIUM', { key: e.key });
+					}
+				}
+			};
+			window.addEventListener('keydown', handleKeydown, true);
+			cleanups.push(() => window.removeEventListener('keydown', handleKeydown, true));
+		}
 
 		return () => {
-			document.removeEventListener('visibilitychange', handleVisibilityChange);
-			window.removeEventListener('blur', handleBlur);
-			window.removeEventListener('resize', handleResize);
-			document.removeEventListener('copy', (e) => preventAndReport(e, 'CLIPBOARD'), true);
-			document.removeEventListener('cut', (e) => preventAndReport(e, 'CLIPBOARD'), true);
-			document.removeEventListener('paste', (e) => preventAndReport(e, 'CLIPBOARD'), true);
-			document.removeEventListener('contextmenu', (e) => preventAndReport(e, 'CONTEXT_MENU'), true);
-			window.removeEventListener('keydown', handleKeydown, true);
-			clearTimeout(resizeTimeout);
+			for (const cleanup of cleanups) cleanup();
 			if (blinkTimeout) clearTimeout(blinkTimeout);
 			if (strobeInterval) clearInterval(strobeInterval);
 		};
@@ -259,7 +309,7 @@
 	<div class="consent-overlay" role="dialog" aria-modal="true" aria-labelledby="consent-title">
 		<div class="consent-card">
 			<div class="consent-header">
-				<span class="consent-icon">🚫</span>
+				<span class="consent-icon"><ShieldAlertIcon class="text-red-500" size={48} /></span>
 				<h2 id="consent-title" class="consent-title">Peringatan Keras</h2>
 				<p class="consent-desc">
 					Kamu terdeteksi melakukan kecurangan berulang kali. Untuk melanjutkan ujian, ketik kalimat
@@ -290,7 +340,7 @@
 					{:else if consentValid}
 						✓ Tepat! Tekan tombol untuk melanjutkan.
 					{:else}
-						{consentInput.length} / {CONSENT_PHRASE.length} karakter
+						{consentInput.length} / {CONSENT_PHRASE.length} karakter
 					{/if}
 				</p>
 			</div>
@@ -376,27 +426,6 @@
 		color: rgba(255, 255, 255, 0.8);
 	}
 
-	@keyframes cheat-strobe {
-		0%,
-		100% {
-			background: rgba(220, 38, 38, 1);
-			opacity: 1;
-		}
-		50% {
-			background: rgba(0, 0, 0, 0.2);
-			opacity: 0.3;
-		}
-	}
-
-	@keyframes cheat-pulse {
-		from {
-			background: rgba(185, 28, 28, 0.88);
-		}
-		to {
-			background: rgba(239, 68, 68, 0.96);
-		}
-	}
-
 	@keyframes cheat-shake {
 		0%,
 		100% {
@@ -418,8 +447,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: rgba(10, 0, 0, 0.92);
-		backdrop-filter: blur(6px);
+		background: #dc2626; /* Deep solid red */
 		padding: 1rem;
 	}
 

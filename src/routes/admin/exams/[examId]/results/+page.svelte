@@ -65,7 +65,7 @@
 
 	async function loadExamInfo() {
 		try {
-			exam = await examService.getExam(examId);
+			exam = (await examService.getExam(examId)).data;
 		} catch (error) {
 			toast.error('Gagal memuat info ujian');
 			goto('/admin/exams');
@@ -169,6 +169,10 @@
 		loadResults();
 	});
 </script>
+
+<svelte:head>
+	<title>Hasil Ujian - Exstem</title>
+</svelte:head>
 
 <div class="flex h-full flex-1 flex-col space-y-8 p-8">
 	<PageHeader

@@ -34,13 +34,13 @@
 		isLoading = true;
 		try {
 			const res = await examService.getExams(page, pagination.per_page);
-			exams = res.data.exams || [];
+			exams = res.data || [];
 			if (res.pagination) {
 				pagination = res.pagination;
 			}
 
 			const resSubjects = await subjectService.getSubjects();
-			subjects = resSubjects.data.data.subjects || [];
+			subjects = resSubjects.data.data || [];
 		} catch (error) {
 			toast.error('Gagal memuat daftar ujian');
 		} finally {
@@ -138,6 +138,10 @@
 		loadData();
 	});
 </script>
+
+<svelte:head>
+	<title>Kelola Ujian - Exstem</title>
+</svelte:head>
 
 <div class="flex h-full flex-1 flex-col space-y-8 p-8">
 	<PageHeader

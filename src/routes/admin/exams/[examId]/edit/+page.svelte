@@ -10,40 +10,39 @@
 	} from '$lib/services/admin/exam.service';
 	import { classService, type Class } from '$lib/services/admin/class.service';
 	import { majorService, type Major } from '$lib/services/admin/major.service';
-	import { subjectService, type Subject } from '$lib/services/admin/subject.service';
+	import { questionService, type QBank } from '$lib/services/admin/question.service';
 	import PageHeader from '$lib/components/ui/page-header.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { toast } from 'svelte-sonner';
 	import { Loader2 } from '@lucide/svelte';
 
-	import TabInformasi from '$lib/components/admin/exam-editor/TabInformasi.svelte';
-	import TabTarget from '$lib/components/admin/exam-editor/TabTarget.svelte';
-	import TabSoal from '$lib/components/admin/exam-editor/TabSoal.svelte';
+	import SectionInformasi from '$lib/components/admin/exam-editor/SectionInformasi.svelte';
+	import SectionTarget from '$lib/components/admin/exam-editor/SectionTarget.svelte';
 
 	let examId = page.params.examId as string;
 	let exam: Exam | null = $state(null);
 	let targetRules: ExamTargetRule[] = $state([]);
-	let questions: Question[] = $state([]);
 	let classes: Class[] = $state([]);
-	let subjects: Subject[] = $state([]);
 	let majorsList: Major[] = $state([]);
+	let qbanksList: QBank[] = $state([]);
 
 	let isLoading = $state(true);
 	let isSaving = $state(false);
 	let isPublishing = $state(false);
+	let isRefreshing = $state(false);
 
-	let activeTab = $state<'informasi' | 'target' | 'soal'>('informasi');
-
+	// Layout is now vertical, no activeTab needed
 	// --- Tab 1: Informasi State ---
 	let formTitle = $state('');
-	let formSubjectId: number | null = $state(null);
 	let formDuration = $state(90);
 	let formScheduledStart = $state('');
 	let formScheduledEnd = $state('');
 	let formToken = $state('');
 
-	// --- Tab 3: Soal State ---
-	let activeQuestionIndex = $state(0);
+	let formQBankID = $state<string | null>(null);
+	let formQuestionCount = $state(10);
+	let formRandomizeQuestions = $state(true);
+	let formCheatRules = $state<Record<string, boolean>>({});
 
 	async function loadInitialData() {
 		isLoading = true;
@@ -53,9 +52,23 @@
 			if (!exam) return;
 
 			formTitle = exam.title;
-			formSubjectId = exam.subject_id || null;
 			formDuration = exam.duration_minutes;
 			formToken = exam.entry_token || '';
+
+			formQBankID = exam.qbank_id || null;
+			formQuestionCount = exam.question_count ?? 10;
+			formRandomizeQuestions = exam.randomize_questions ?? true;
+
+			if (exam.cheat_rules) {
+				try {
+					let parsed =
+						typeof exam.cheat_rules === 'string' ? JSON.parse(exam.cheat_rules) : exam.cheat_rules;
+					formCheatRules = parsed || {};
+				} catch (e) {
+					formCheatRules = {};
+				}
+			}
+
 			if (exam.scheduled_start) {
 				formScheduledStart = new Date(exam.scheduled_start).toISOString().slice(0, 16);
 			}
@@ -64,16 +77,17 @@
 			}
 
 			targetRules = (await examService.getTargetRules(examId)) || [];
-			questions = (await examService.getQuestions(examId)) || [];
 
 			const classRes = await classService.getClasses();
 			classes = classRes.data.data.classes || [];
 
-			const resSubjects = await subjectService.getSubjects();
-			subjects = resSubjects.data.data.subjects || [];
-
 			const resMajors = await majorService.getMajors();
 			majorsList = resMajors.data.data.majors || [];
+
+			const resQBanks = await questionService.getQBanks(1, 1000);
+			qbanksList = Array.isArray(resQBanks)
+				? resQBanks
+				: (resQBanks as any).data || (resQBanks as any).qbanks || [];
 		} catch (error) {
 			toast.error('Gagal memuat data ujian');
 			goto('/admin/exams');
@@ -85,15 +99,24 @@
 	async function saveInformation() {
 		isSaving = true;
 		try {
+			// Clean up cheat rules (omit false/empty)
+			const cleanCheatRules: Record<string, boolean> = {};
+			for (const [key, val] of Object.entries(formCheatRules)) {
+				if (val) cleanCheatRules[key] = true;
+			}
+
 			await examService.updateExam(examId, {
 				title: formTitle,
-				subject_id: formSubjectId === null ? 0 : formSubjectId,
 				duration_minutes: formDuration,
 				entry_token: formToken || undefined,
 				scheduled_start: formScheduledStart
 					? new Date(formScheduledStart).toISOString()
 					: undefined,
-				scheduled_end: formScheduledEnd ? new Date(formScheduledEnd).toISOString() : undefined
+				scheduled_end: formScheduledEnd ? new Date(formScheduledEnd).toISOString() : undefined,
+				qbank_id: formQBankID || undefined,
+				question_count: formQuestionCount,
+				randomize_questions: formRandomizeQuestions,
+				cheat_rules: cleanCheatRules
 			});
 			toast.success('Informasi ujian berhasil disimpan');
 			if (exam) exam.status = 'DRAFT';
@@ -115,14 +138,48 @@
 		});
 	}
 
-	function removeTargetRule(index: number) {
+	async function removeTargetRule(index: number) {
+		const rule = targetRules[index];
+		if (rule.id) {
+			// Rule is already saved to DB, need to call API
+			try {
+				await examService.deleteTargetRule(examId, rule.id);
+				toast.success('Aturan target berhasil dihapus');
+			} catch (err: any) {
+				const message = err.response?.data?.error?.message || 'Gagal menghapus aturan target';
+				toast.error(message);
+				return; // Stop if delete fails
+			}
+		}
+		// Remove from UI array
 		targetRules.splice(index, 1);
+	}
+
+	async function handleRuleUpdate(rule: ExamTargetRule) {
+		if (!rule.id) return;
+		try {
+			await examService.updateTargetRule(examId, rule.id, {
+				class_id: rule.class_id || undefined,
+				grade_level: rule.grade_level || undefined,
+				major_code: rule.major_code || undefined,
+				religion: rule.religion || undefined
+			});
+			toast.success('Aturan target berhasil diperbarui');
+		} catch (err: any) {
+			const message = err.response?.data?.error?.message || 'Gagal memperbarui aturan target';
+			toast.error(message);
+		}
 	}
 
 	async function saveTargetRules() {
 		isSaving = true;
 		try {
-			for (const rule of targetRules) {
+			const newRules = targetRules.filter((r) => !r.id);
+			if (newRules.length === 0) {
+				return; // Nothing to save
+			}
+
+			for (const rule of newRules) {
 				await examService.addTargetRule(examId, {
 					class_id: rule.class_id || undefined,
 					grade_level: rule.grade_level || undefined,
@@ -130,84 +187,13 @@
 					religion: rule.religion || undefined
 				});
 			}
-			toast.success(
-				'Aturan target berhasil disimpan. (Catatan: versi saat ini hanya menambahkan aturan baru)'
-			);
-		} catch (err) {
-			toast.error('Gagal menyimpan target peserta');
-		} finally {
-			isSaving = false;
-		}
-	}
+			toast.success('Aturan target baru berhasil disimpan');
 
-	function addQuestion() {
-		questions.push({
-			exam_id: examId,
-			question_text: '',
-			question_type: 'MULTIPLE_CHOICE',
-			options: ['', '', '', '', ''],
-			correct_option: '0',
-			order_num: questions.length + 1,
-			score_value: 1
-		});
-		activeQuestionIndex = questions.length - 1;
-	}
-
-	function removeQuestion(index: number) {
-		questions.splice(index, 1);
-		questions.forEach((q, i) => (q.order_num = i + 1));
-		if (activeQuestionIndex >= questions.length) {
-			activeQuestionIndex = questions.length - 1;
-		}
-	}
-
-	function addOption() {
-		if (
-			questions.length > 0 &&
-			activeQuestionIndex >= 0 &&
-			activeQuestionIndex < questions.length
-		) {
-			questions[activeQuestionIndex].options.push('');
-		}
-	}
-
-	function removeOption(optIdx: number) {
-		if (
-			questions.length > 0 &&
-			activeQuestionIndex >= 0 &&
-			activeQuestionIndex < questions.length
-		) {
-			const q = questions[activeQuestionIndex];
-			if (q.options.length <= 2) {
-				toast.error('Minimal harus ada 2 pilihan jawaban');
-				return;
-			}
-			q.options.splice(optIdx, 1);
-			// Reset correct option index safely if it points out of bounds or to the deleted item
-			let correctIdx = parseInt(q.correct_option, 10);
-			if (correctIdx === optIdx) {
-				q.correct_option = '0';
-			} else if (correctIdx > optIdx) {
-				q.correct_option = String(correctIdx - 1);
-			}
-		}
-	}
-
-	async function saveQuestions() {
-		for (let i = 0; i < questions.length; i++) {
-			const q = questions[i];
-			if (!q.question_text || q.question_text === '<p></p>') {
-				toast.error(`Pertanyaan nomor ${q.order_num} belum diisi`);
-				return;
-			}
-		}
-
-		isSaving = true;
-		try {
-			await examService.replaceQuestions(examId, questions);
-			toast.success('Semua soal berhasil disimpan');
-		} catch (err) {
-			toast.error('Gagal menyimpan soal');
+			// Refresh to get the actual IDs from the database so realtime edits work on them
+			targetRules = (await examService.getTargetRules(examId)) || [];
+		} catch (err: any) {
+			const message = err.response?.data?.error?.message || 'Gagal menyimpan target peserta';
+			toast.error(message);
 		} finally {
 			isSaving = false;
 		}
@@ -226,10 +212,26 @@
 		}
 	}
 
+	async function refreshCache() {
+		isRefreshing = true;
+		try {
+			await examService.refreshCache(examId);
+			toast.success('Cache berhasil diperbarui!');
+		} catch (err) {
+			toast.error('Gagal memperbarui cache');
+		} finally {
+			isRefreshing = false;
+		}
+	}
+
 	onMount(() => {
 		loadInitialData();
 	});
 </script>
+
+<svelte:head>
+	<title>Edit Ujian - Exstem</title>
+</svelte:head>
 
 <div class="flex h-full flex-1 flex-col space-y-4 p-8">
 	<PageHeader
@@ -238,11 +240,22 @@
 		backUrl="/admin/exams"
 	>
 		{#if exam?.status === 'PUBLISHED'}
-			<span
-				class="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800 dark:bg-green-900 dark:text-green-300"
-			>
-				Telah Diterbitkan
-			</span>
+			<div class="flex items-center space-x-2">
+				<span
+					class="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800 dark:bg-green-900 dark:text-green-300"
+				>
+					Telah Diterbitkan
+				</span>
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={refreshCache}
+					disabled={isRefreshing || isLoading}
+				>
+					{#if isRefreshing}<Loader2 class="mr-2 h-4 w-4 animate-spin" />{/if}
+					Perbarui Cache
+				</Button>
+			</div>
 		{:else}
 			<Button variant="default" onclick={publishExam} disabled={isPublishing || isLoading}>
 				{#if isPublishing}<Loader2 class="mr-2 h-4 w-4 animate-spin" />{/if}
@@ -256,50 +269,25 @@
 			<Loader2 class="h-8 w-8 animate-spin text-primary" />
 		</div>
 	{:else}
-		<div class="flex gap-2 rounded-t-xl border-b bg-muted/10 px-2 pt-2">
-			<button
-				class="rounded-t-lg px-6 py-3 text-sm font-bold transition-all {activeTab === 'informasi'
-					? 'border-x border-t-2 border-primary bg-background text-primary shadow-sm'
-					: 'border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground'}"
-				onclick={() => (activeTab = 'informasi')}
-			>
-				1. Informasi Ujian
-			</button>
-			<button
-				class="rounded-t-lg px-6 py-3 text-sm font-bold transition-all {activeTab === 'target'
-					? 'border-x border-t-2 border-primary bg-background text-primary shadow-sm'
-					: 'border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground'}"
-				onclick={() => (activeTab = 'target')}
-			>
-				2. Target Peserta
-			</button>
-			<button
-				class="rounded-t-lg px-6 py-3 text-sm font-bold transition-all {activeTab === 'soal'
-					? 'border-x border-t-2 border-primary bg-background text-primary shadow-sm'
-					: 'border-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground'}"
-				onclick={() => (activeTab = 'soal')}
-			>
-				3. Bank Soal
-			</button>
-		</div>
-
-		<div class="mt-4">
-			{#if activeTab === 'informasi'}
-				<TabInformasi
+		<div class="mt-4 flex w-full flex-col items-center space-y-8 pb-12">
+			<div class="w-full">
+				<SectionInformasi
 					bind:formTitle
-					bind:formSubjectId
 					bind:formDuration
 					bind:formToken
 					bind:formScheduledStart
 					bind:formScheduledEnd
-					{subjects}
+					bind:formQBankID
+					bind:formQuestionCount
+					bind:formRandomizeQuestions
+					bind:formCheatRules
 					{isSaving}
 					onsave={saveInformation}
 				/>
-			{/if}
+			</div>
 
-			{#if activeTab === 'target'}
-				<TabTarget
+			<div class="w-full">
+				<SectionTarget
 					bind:targetRules
 					{classes}
 					{majorsList}
@@ -307,21 +295,9 @@
 					onsave={saveTargetRules}
 					onadd={addTargetRule}
 					onremove={removeTargetRule}
+					onupdate={handleRuleUpdate}
 				/>
-			{/if}
-
-			{#if activeTab === 'soal'}
-				<TabSoal
-					bind:questions
-					bind:activeQuestionIndex
-					{isSaving}
-					onsave={saveQuestions}
-					onaddQuestion={addQuestion}
-					onremoveQuestion={removeQuestion}
-					onaddOption={addOption}
-					onremoveOption={removeOption}
-				/>
-			{/if}
+			</div>
 		</div>
 	{/if}
 </div>

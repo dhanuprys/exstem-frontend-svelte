@@ -1,7 +1,8 @@
 <script lang="ts">
 	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip';
-	import { Clock, Loader2, Send, Wifi, WifiOff } from '@lucide/svelte';
+	import { Clock, Loader2, Send, Wifi, WifiOff, LayoutGrid } from '@lucide/svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
 
 	interface Props {
 		title: string;
@@ -10,17 +11,36 @@
 		wsConnected: boolean;
 		isSubmitting: boolean;
 		onSubmit: () => void;
+		onOpenGrid?: () => void;
 	}
 
-	let { title, timerDisplay, isTimerCritical, wsConnected, isSubmitting, onSubmit }: Props =
-		$props();
+	let {
+		title,
+		timerDisplay,
+		isTimerCritical,
+		wsConnected,
+		isSubmitting,
+		onSubmit,
+		onOpenGrid
+	}: Props = $props();
 </script>
 
 <div
 	class="flex items-center justify-between border-b bg-background/95 px-4 py-3 backdrop-blur md:px-6"
 >
-	<div class="flex items-center gap-3">
-		<h2 class="text-sm font-bold md:text-base">{title}</h2>
+	<div class="flex items-center gap-2 md:gap-3">
+		{#if onOpenGrid}
+			<Button
+				variant="outline"
+				size="icon"
+				class="h-8 w-8 shrink-0 md:hidden"
+				onclick={onOpenGrid}
+				title="Daftar Soal"
+			>
+				<LayoutGrid class="h-4 w-4" />
+			</Button>
+		{/if}
+		<h2 class="line-clamp-1 text-sm font-bold md:text-base">{title}</h2>
 		<Separator orientation="vertical" class="h-4" />
 
 		<Tooltip.Root>

@@ -20,7 +20,7 @@
 	onMount(async () => {
 		try {
 			const res = await lobbyService.getExams();
-			exams = res.data.data.exams || [];
+			exams = res.data.data || [];
 		} catch (err) {
 			error = 'Gagal memuat daftar ujian. Silakan coba lagi.';
 		} finally {
@@ -34,6 +34,11 @@
 				return {
 					label: `Selesai — ${exam.final_score?.toFixed(1) ?? '0'}`,
 					class: 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'
+				};
+			case 'CLOSED':
+				return {
+					label: 'Waktu Habis',
+					class: 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300'
 				};
 			case 'IN_PROGRESS':
 				return {
@@ -76,7 +81,11 @@
 	}
 </script>
 
-<div class="mx-auto max-w-4xl space-y-8 p-6 md:p-8">
+<svelte:head>
+	<title>Lobby - Exstem</title>
+</svelte:head>
+
+<div class="mx-auto max-w-4xl space-y-6 p-4 sm:p-6 md:space-y-8 md:p-8">
 	<!-- Page Header -->
 	<div class="space-y-2">
 		<h1 class="text-2xl font-bold tracking-tight md:text-3xl">Daftar Ujian</h1>

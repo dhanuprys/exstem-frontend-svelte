@@ -8,13 +8,21 @@
 		answers: Record<string, string>;
 		tempAnswerKeys: string[];
 		onSelect: (index: number) => void;
+		class?: string;
 	}
 
-	let { questions, activeIndex, answeredCount, answers, tempAnswerKeys, onSelect }: Props =
-		$props();
+	let {
+		questions,
+		activeIndex,
+		answeredCount,
+		answers,
+		tempAnswerKeys,
+		onSelect,
+		class: className = 'hidden w-64 shrink-0 overflow-y-auto border-r bg-muted/30 p-4 md:block'
+	}: Props = $props();
 </script>
 
-<aside class="hidden w-64 shrink-0 overflow-y-auto border-r bg-muted/30 p-4 md:block">
+<div class={className}>
 	<p class="mb-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
 		Navigasi Soal ({answeredCount}/{questions.length})
 	</p>
@@ -35,4 +43,4 @@
 			</button>
 		{/each}
 	</div>
-</aside>
+</div>

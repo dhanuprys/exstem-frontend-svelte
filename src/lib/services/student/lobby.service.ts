@@ -14,7 +14,7 @@ export interface LobbyExam {
 	scheduled_end?: string;
 	duration_minutes: number;
 	status: string;
-	lobby_status: 'UPCOMING' | 'AVAILABLE' | 'IN_PROGRESS' | 'COMPLETED';
+	lobby_status: 'UPCOMING' | 'AVAILABLE' | 'IN_PROGRESS' | 'COMPLETED' | 'CLOSED';
 	session_status?: SessionStatus;
 	final_score?: number;
 }
@@ -24,7 +24,12 @@ export interface LobbyExam {
 class LobbyService {
 	/** Fetch all exams available to the authenticated student. */
 	public async getExams() {
-		return api.get<ApiResponse<{ exams: LobbyExam[] }>>('/student/lobby');
+		return api.get<ApiResponse<LobbyExam[]>>('/student/lobby');
+	}
+
+	/** Lightweight check: returns the active exam ID if a session is in progress. */
+	public async getActiveSession() {
+		return api.get<ApiResponse<{ exam_id: string } | null>>('/student/active-session');
 	}
 }
 

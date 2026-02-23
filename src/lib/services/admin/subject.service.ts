@@ -18,11 +18,11 @@ export interface UpdateSubjectRequest {
 
 export const subjectService = {
 	getSubjects: async () => {
-		return api.get<ApiResponse<{ subjects: Subject[] }>>('/admin/subjects');
+		return api.get<ApiResponse<Subject[]>>('/admin/subjects');
 	},
 
 	createSubject: async (data: CreateSubjectRequest) => {
-		return api.post<ApiResponse<{ subject: Subject }>>('/admin/subjects', data);
+		return api.post<ApiResponse<Subject>>('/admin/subjects', data);
 	},
 
 	updateSubject: async (id: number, data: UpdateSubjectRequest) => {

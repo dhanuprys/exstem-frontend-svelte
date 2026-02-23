@@ -40,6 +40,10 @@ export interface Exam {
 	updated_at: string;
 	target_rules?: ExamTargetRule[];
 	questions?: Question[];
+	qbank_id?: string | null;
+	cheat_rules?: any;
+	randomize_questions?: boolean;
+	question_count?: number;
 }
 
 export interface ExamResultsResponse {
@@ -55,7 +59,7 @@ export interface ExamResultsResponse {
 
 class ExamService {
 	public async getExams(page = 1, perPage = 10) {
-		const res = await api.get<{ data: { exams: Exam[] }; pagination: Pagination }>('/admin/exams', {
+		const res = await api.get<ApiResponse<Exam[]>>('/admin/exams', {
 			params: { page, per_page: perPage }
 		});
 		return res.data;
@@ -99,30 +103,23 @@ class ExamService {
 		return res.data;
 	}
 
+	public async updateTargetRule(examId: string, ruleId: number, data: Partial<ExamTargetRule>) {
+		const res = await api.put<ApiResponse<ExamTargetRule>>(
+			`/admin/exams/${examId}/target-rules/${ruleId}`,
+			data
+		);
+		return res.data;
+	}
+
+	public async deleteTargetRule(examId: string, ruleId: number) {
+		const res = await api.delete(`/admin/exams/${examId}/target-rules/${ruleId}`);
+		return res.data;
+	}
+
 	public async getTargetRules(examId: string) {
 		const res = await api.get<ApiResponse<ExamTargetRule[]>>(`/admin/exams/${examId}/target-rules`);
 		return res.data?.data || [];
 	}
-
-	public async getQuestions(examId: string) {
-		const res = await api.get<ApiResponse<Question[]>>(`/admin/exams/${examId}/questions`);
-		return res.data?.data || [];
-	}
-
-	public async replaceQuestions(examId: string, questions: Partial<Question>[]) {
-		const res = await api.put<ApiResponse<Question[]>>(`/admin/exams/${examId}/questions`, {
-			questions
-		});
-		return res.data?.data || [];
-	}
-
-	public async createQuestion(examId: string, question: Partial<Question>) {
-		const res = await api.post<ApiResponse<Question>>(`/admin/exams/${examId}/questions`, question);
-		return res.data?.data;
-	}
-
-	public async updateQuestion() {}
-	public async deleteQuestion() {}
 
 	public async getExamResults(
 		id: string,

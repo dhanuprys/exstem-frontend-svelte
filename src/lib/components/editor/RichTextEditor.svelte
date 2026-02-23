@@ -317,7 +317,7 @@
 			>
 				<Code size={16} />
 			</button>
-			<div class="flex-grow"></div>
+			<div class="grow"></div>
 			<button
 				class="btn-ghost rounded p-2 text-muted-foreground hover:bg-muted"
 				onclick={undo}

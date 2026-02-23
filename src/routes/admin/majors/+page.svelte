@@ -114,6 +114,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Kelola Jurusan - Exstem</title>
+</svelte:head>
+
 <div class="flex h-full flex-1 flex-col space-y-8 p-8">
 	<PageHeader
 		title="Jurusan"

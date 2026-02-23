@@ -25,10 +25,35 @@
 	let settings = $state({
 		school_name: '',
 		school_location: '',
-		school_logo_url: ''
+		school_logo_url: '',
+		login_bg_url: ''
 	});
 
 	let fileInput: HTMLInputElement | undefined = $state();
+	let bgInput: HTMLInputElement | undefined = $state();
+	let isUploadingBg = $state(false);
+
+	async function handleBgUpload(event: Event) {
+		const target = event.target as HTMLInputElement;
+		const file = target.files?.[0];
+		if (!file) return;
+
+		isUploadingBg = true;
+		try {
+			const res = await mediaService.uploadImage(file);
+			settings.login_bg_url = res.data.data.url;
+			toast.success('Latar belakang berhasil diunggah');
+		} catch (error) {
+			toast.error('Gagal mengunggah latar belakang');
+		} finally {
+			isUploadingBg = false;
+			if (bgInput) bgInput.value = '';
+		}
+	}
+
+	function triggerBgInput() {
+		bgInput?.click();
+	}
 
 	async function loadData() {
 		isLoading = true;
@@ -91,6 +116,10 @@
 		loadData();
 	});
 </script>
+
+<svelte:head>
+	<title>Pengaturan Server - Exstem</title>
+</svelte:head>
 
 <div class="flex h-full flex-1 flex-col space-y-8 p-8">
 	<PageHeader
@@ -165,6 +194,48 @@
 									class="hidden"
 									bind:this={fileInput}
 									onchange={handleFileUpload}
+								/>
+							</div>
+						</div>
+					</div>
+
+					<div class="mt-6 grid gap-4 border-t pt-6">
+						<Label>Latar Belakang Login</Label>
+						<div class="flex items-start gap-6">
+							<div
+								class="relative flex h-24 w-40 shrink-0 items-center justify-center overflow-hidden rounded-md border border-dashed bg-muted/50"
+							>
+								{#if settings.login_bg_url}
+									<img
+										src={overrideAssetPath(settings.login_bg_url)}
+										alt="Login Background"
+										class="h-full w-full object-cover"
+									/>
+								{:else}
+									<span class="px-2 text-center text-xs text-muted-foreground"
+										>Tidak Ada Latar Belakang</span
+									>
+								{/if}
+							</div>
+							<div class="grid gap-2">
+								<Button variant="outline" onclick={triggerBgInput} disabled={isUploadingBg}>
+									{#if isUploadingBg}
+										<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+										Mengunggah...
+									{:else}
+										<Upload class="mr-2 h-4 w-4" />
+										Unggah Latar Belakang
+									{/if}
+								</Button>
+								<p class="text-[0.8rem] text-muted-foreground">
+									Disarankan gambar landscape resolusi tinggi (misal: 1920x1080) maksimal 5MB.
+								</p>
+								<input
+									type="file"
+									accept="image/*"
+									class="hidden"
+									bind:this={bgInput}
+									onchange={handleBgUpload}
 								/>
 							</div>
 						</div>

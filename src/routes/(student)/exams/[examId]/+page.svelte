@@ -21,6 +21,7 @@
 	import SubmitDialog from '$lib/components/student/exams/submit-dialog.svelte';
 	import ScoreResult from '$lib/components/student/exams/score-result.svelte';
 	import AntiCheat from '$lib/components/student/exams/anti-cheat.svelte';
+	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import type { CheatPayload } from '$lib/types/cheat';
 
 	let { params }: PageProps = $props();
@@ -33,6 +34,7 @@
 	let isSubmitting = $state(false);
 	let showConfirmSubmit = $state(false);
 	let wsConnected = $state(false);
+	let isMobileGridOpen = $state(false);
 
 	let answers = $state<Record<string, string>>({});
 	let tempAnswerKeys = $state<string[]>([]); // For "Ragu-ragu" feature
@@ -42,6 +44,10 @@
 	let remainingSeconds = $state(0); // High precision float
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 	let finalScore = $state<number | null>(null);
+
+	// Session Config
+	let isRandomOrder = $state(false);
+	let cheatRules = $state<Record<string, boolean>>({});
 
 	// ─── Derived ─────────────────────────────────────────────────────
 
@@ -91,6 +97,10 @@
 					answers = session.autosaved_answers;
 				}
 
+				// RESTORE SESSION CONFIG
+				isRandomOrder = session.is_random_order ?? false;
+				cheatRules = session.cheat_rules ?? {};
+
 				// RESTORE TIME (Use backend precise float)
 				remainingSeconds = session.remaining_time; // Ensure backend sends this key!
 			} else {
@@ -130,6 +140,7 @@
 	});
 
 	onDestroy(() => {
+		flushPendingAutosaves(); // Send any buffered answers before teardown
 		examWebSocketService.disconnect();
 		stopTimer();
 		if (typeof window !== 'undefined') {
@@ -181,10 +192,14 @@
 
 	// ─── Interactions ────────────────────────────────────────────────
 
+	const AUTOSAVE_DEBOUNCE_MS = 2000;
+	const pendingAutosaves = new Map<string, ReturnType<typeof setTimeout>>();
+
 	function handleAnswer(questionId: string, answerIndex: number, reset: boolean) {
 		const ansStr = String(answerIndex);
+		const valueToSend = reset ? null : ansStr;
 
-		// Optimistic UI Update
+		// Optimistic UI Update (instant)
 		if (reset) {
 			const newAnswers = { ...answers };
 			delete newAnswers[questionId];
@@ -193,8 +208,27 @@
 			answers = { ...answers, [questionId]: ansStr };
 		}
 
-		// Send to Server
-		examWebSocketService.sendAutosave(questionId, reset ? null : ansStr);
+		// Debounced Send — cancel any pending send for THIS question
+		if (pendingAutosaves.has(questionId)) {
+			clearTimeout(pendingAutosaves.get(questionId)!);
+		}
+
+		const timeout = setTimeout(() => {
+			examWebSocketService.sendAutosave(questionId, valueToSend);
+			pendingAutosaves.delete(questionId);
+		}, AUTOSAVE_DEBOUNCE_MS);
+
+		pendingAutosaves.set(questionId, timeout);
+	}
+
+	/** Flush all pending debounced autosaves immediately (e.g. before submit or unload). */
+	function flushPendingAutosaves() {
+		for (const [questionId, timeout] of pendingAutosaves) {
+			clearTimeout(timeout);
+			const currentAnswer = answers[questionId];
+			examWebSocketService.sendAutosave(questionId, currentAnswer ?? null);
+		}
+		pendingAutosaves.clear();
 	}
 
 	function handleTempAnswer(questionId: string, status: boolean) {
@@ -214,9 +248,14 @@
 	function executeSubmit() {
 		if (isSubmitting) return;
 		isSubmitting = true;
+		flushPendingAutosaves(); // Ensure all answers are saved before grading
 		examWebSocketService.sendSubmit();
 	}
 </script>
+
+<svelte:head>
+	<title>Sedang Ujian - Exstem</title>
+</svelte:head>
 
 {#if isLoading}
 	<div class="flex min-h-[calc(100vh-4rem)] items-center justify-center">
@@ -229,7 +268,7 @@
 	<ScoreResult score={finalScore} {answeredCount} totalQuestions={questions.length} />
 {:else if paper}
 	<div class="flex h-[calc(100vh-4rem)] flex-col">
-		<AntiCheat onCheatCapture={handleCheat} />
+		<AntiCheat onCheatCapture={handleCheat} {cheatRules} />
 		<ExamTopBar
 			title={paper.title}
 			{timerDisplay}
@@ -237,6 +276,7 @@
 			{wsConnected}
 			{isSubmitting}
 			onSubmit={() => (showConfirmSubmit = true)}
+			onOpenGrid={() => (isMobileGridOpen = true)}
 		/>
 
 		<div class="flex flex-1 overflow-hidden">
@@ -256,6 +296,7 @@
 					totalQuestions={questions.length}
 					selectedAnswer={answers[activeQuestion.id]}
 					{tempAnswerKeys}
+					{isRandomOrder}
 					onAnswer={handleAnswer}
 					onTempAnswer={handleTempAnswer}
 					onPrev={() => activeIndex > 0 && activeIndex--}
@@ -266,6 +307,26 @@
 			{/if}
 		</div>
 	</div>
+
+	<!-- Mobile Grid Sheet -->
+	<Sheet.Root bind:open={isMobileGridOpen}>
+		<Sheet.Content side="right" class="w-[85vw] overflow-y-auto sm:w-[400px]">
+			<div class="h-full overflow-y-auto px-1 pt-2 pb-6 sm:px-4">
+				<QuestionGrid
+					class="p-4"
+					{questions}
+					{activeIndex}
+					{answeredCount}
+					{answers}
+					{tempAnswerKeys}
+					onSelect={(index) => {
+						activeIndex = index;
+						isMobileGridOpen = false;
+					}}
+				/>
+			</div>
+		</Sheet.Content>
+	</Sheet.Root>
 
 	{#if showConfirmSubmit}
 		<SubmitDialog

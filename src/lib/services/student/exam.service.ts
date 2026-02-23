@@ -31,9 +31,10 @@ export interface ExamSession {
 }
 
 export interface ExamSessionState {
-	session_id: string;
 	exam_id: string;
 	student_id: number;
+	is_random_order: boolean;
+	cheat_rules: Record<string, boolean>;
 	autosaved_answers: Record<string, string>;
 	remaining_time: number; // in seconds
 }

@@ -142,6 +142,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Kelola Pengguna - Exstem</title>
+</svelte:head>
+
 <div class="flex h-full flex-1 flex-col space-y-8 p-8">
 	<PageHeader title="Manajemen Pengguna" description="Kelola akun dan hak akses pengguna admin.">
 		<Button onclick={openCreateDialog}>

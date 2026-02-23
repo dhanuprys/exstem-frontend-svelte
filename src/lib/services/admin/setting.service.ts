@@ -21,6 +21,6 @@ export const settingService = {
 	},
 
 	getPublicSettings: async () => {
-		return api.get<ApiResponse<{ settings: Record<string, string> }>>('/public/settings');
+		return api.get<ApiResponse<Record<string, string>>>('/public/settings');
 	}
 };
