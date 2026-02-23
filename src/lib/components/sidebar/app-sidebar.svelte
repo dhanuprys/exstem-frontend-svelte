@@ -1,8 +1,6 @@
 <script lang="ts" module>
 	import BookOpenIcon from '@lucide/svelte/icons/book-open';
-	import ChartPieIcon from '@lucide/svelte/icons/chart-pie';
 	import LayoutDashboardIcon from '@lucide/svelte/icons/layout-dashboard';
-	import UsersIcon from '@lucide/svelte/icons/users';
 	import GraduationCapIcon from '@lucide/svelte/icons/graduation-cap';
 	import ShieldCheckIcon from '@lucide/svelte/icons/shield-check';
 	import FileTextIcon from '@lucide/svelte/icons/file-text';
@@ -20,6 +18,11 @@
 						title: 'Dashboard',
 						url: '/admin',
 						icon: LayoutDashboardIcon
+					},
+					{
+						title: 'Sistem',
+						url: '/admin/system',
+						icon: SettingsIcon
 					},
 					{
 						title: 'Siswa',

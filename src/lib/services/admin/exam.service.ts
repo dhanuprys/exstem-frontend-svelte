@@ -138,6 +138,11 @@ class ExamService {
 		});
 		return res.data;
 	}
+
+	public getMonitorSseUrl(id: string, token: string) {
+		const baseURL = api.defaults.baseURL;
+		return `${baseURL}/admin/exams/${id}/monitor?token=${token}`;
+	}
 }
 
 export const examService = new ExamService();

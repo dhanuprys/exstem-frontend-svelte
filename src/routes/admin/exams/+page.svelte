@@ -10,7 +10,7 @@
 	import { examService, type Exam } from '$lib/services/admin/exam.service';
 	import { subjectService, type Subject } from '$lib/services/admin/subject.service';
 	import { toast } from 'svelte-sonner';
-	import { Plus, Pencil, Trash2, FileText, Loader2, PlayCircle } from '@lucide/svelte';
+	import { Plus, Pencil, Trash2, FileText, Loader2, PlayCircle, Activity } from '@lucide/svelte';
 	import type { Pagination } from '$lib/types/api';
 
 	let exams: Exam[] = $state([]);
@@ -198,6 +198,14 @@
 							</Table.Cell>
 							<Table.Cell class="text-right">
 								<div class="flex justify-end gap-2">
+									<Button
+										variant="ghost"
+										size="icon"
+										title="Live Monitor"
+										onclick={() => goto(`/admin/exams/${exam.id}/monitor`)}
+									>
+										<Activity class="h-4 w-4" />
+									</Button>
 									<Button
 										variant="ghost"
 										size="icon"

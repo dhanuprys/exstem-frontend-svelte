@@ -4,8 +4,7 @@ export const PERMISSIONS = {
 	STUDENTS_WRITE: 'students:write',
 	STUDENTS_RESET_SESSION: 'students:reset_session',
 	EXAMS_READ: 'exams:read',
-	EXAMS_WRITE: 'exams:write', // new
-	EXAMS_WRITE_OWN: 'exams:write_own', // deprecated
+	EXAMS_WRITE: 'exams:write',
 	EXAMS_PUBLISH: 'exams:publish',
 	QBANKS_READ: 'qbanks:read',
 	QBANKS_WRITE_OWN: 'qbanks:write_own',

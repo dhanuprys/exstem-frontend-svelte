@@ -1,8 +1,5 @@
 <script lang="ts">
-	import {
-		dashboardService,
-		type DashboardData
-	} from '$lib/services/admin/dashboard.service';
+	import { dashboardService, type DashboardData } from '$lib/services/admin/dashboard.service';
 	import PageHeader from '$lib/components/ui/page-header.svelte';
 	import * as Card from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
