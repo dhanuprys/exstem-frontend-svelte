@@ -1,5 +1,5 @@
-# ── Stage 1: Install dependencies ─────────────────────────────────────
-FROM node:22-alpine AS deps
+# ── Stage 1: Build the SvelteKit app ─────────────────────────────────
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -7,21 +7,14 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# ── Stage 2: Build the SvelteKit app ─────────────────────────────────
-FROM node:22-alpine AS builder
-
-WORKDIR /app
-
-COPY --from=deps /app/node_modules ./node_modules
+# Copy source code and build
 COPY . .
-
-# Build produces /app/build via adapter-node
 RUN npm run build
 
 # Prune dev dependencies so only production deps remain
 RUN npm prune --omit=dev
 
-# ── Stage 3: Minimal production image ────────────────────────────────
+# ── Stage 2: Minimal production image ────────────────────────────────
 FROM node:22-alpine AS runner
 
 WORKDIR /app
