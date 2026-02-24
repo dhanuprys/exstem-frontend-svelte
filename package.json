@@ -30,6 +30,7 @@
 		"@vitest/browser-playwright": "^4.0.18",
 		"bits-ui": "^2.16.1",
 		"clsx": "^2.1.1",
+		"cookie": "^0.6.0",
 		"eslint": "^9.39.2",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.14.0",
@@ -59,7 +60,6 @@
 		"@tiptap/pm": "^3.20.0",
 		"@tiptap/starter-kit": "^3.20.0",
 		"axios": "^1.13.5",
-		"cookie": "^1.1.1",
 		"mammoth": "^1.11.0"
 	}
 }

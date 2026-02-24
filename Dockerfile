@@ -1,21 +1,25 @@
 # ── Stage 1: Build the SvelteKit app ─────────────────────────────────
-FROM node:22-alpine AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
-# Copy package manifests first for maximum layer caching
-COPY package.json package-lock.json ./
+# Copy everything needed for npm ci + build
+COPY package.json package-lock.json svelte.config.js vite.config.ts tsconfig.json ./
+
 RUN npm ci
 
-# Copy source code and build
-COPY . .
+# Copy the rest of the source code explicitly to avoid COPY . . shadowing node_modules
+COPY src ./src
+COPY static ./static
+COPY components.json eslint.config.js ./
+
 RUN npm run build
 
 # Prune dev dependencies so only production deps remain
 RUN npm prune --omit=dev
 
 # ── Stage 2: Minimal production image ────────────────────────────────
-FROM node:22-alpine AS runner
+FROM node:22-slim AS runner
 
 WORKDIR /app
 
@@ -23,7 +27,7 @@ ENV NODE_ENV=production
 ENV ORIGIN=http://localhost:3000
 
 # Security: run as non-root
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 
 # Copy only what's needed to run
 COPY --from=builder /app/build ./build
