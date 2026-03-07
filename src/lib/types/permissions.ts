@@ -19,7 +19,9 @@ export const PERMISSIONS = {
 	SUBJECTS_WRITE: 'subjects:write',
 	MAJOR_READ: 'major:read',
 	MAJOR_WRITE: 'major:write',
-	MAJOR_DELETE: 'major:delete'
+	MAJOR_DELETE: 'major:delete',
+	ROOMS_READ: 'rooms:read',
+	ROOMS_WRITE: 'rooms:write'
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

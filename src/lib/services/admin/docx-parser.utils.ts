@@ -11,13 +11,13 @@ export const defaultDocxFormat: DocxFormatConfig = {
 	questionPattern: /^(?:\[SOAL(?:\s+\d+)?\]|Soal\s*:\s*\d+\))/i,
 	// Matches: [Kunci] A  OR  Kunci: A  OR  Kunci : A
 	answerPattern: /^(?:\[Kunci\]\s*|Kunci\s*:\s*)([A-E])/i,
-	// Matches: [A]  OR  A:  (letter followed by colon at line start)
+	// Matches: [A]  OR  A:  (letter followed by colon, with optional leading whitespace)
 	optionPatterns: [
-		/^(?:\[A\]|A\s*:)/i,
-		/^(?:\[B\]|B\s*:)/i,
-		/^(?:\[C\]|C\s*:)/i,
-		/^(?:\[D\]|D\s*:)/i,
-		/^(?:\[E\]|E\s*:)/i
+		/^\s*(?:\[A\]|A\s*:)/i,
+		/^\s*(?:\[B\]|B\s*:)/i,
+		/^\s*(?:\[C\]|C\s*:)/i,
+		/^\s*(?:\[D\]|D\s*:)/i,
+		/^\s*(?:\[E\]|E\s*:)/i
 	]
 };
 

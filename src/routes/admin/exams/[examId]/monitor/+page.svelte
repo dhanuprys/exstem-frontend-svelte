@@ -242,7 +242,9 @@
 	<!-- Header -->
 	<PageHeader
 		title="Live Monitor Ujian"
-		description={exam ? exam.title + ' (Data hanya akan diperbaharui ketika ada aktivitas)' : 'Memuat...'}
+		description={exam
+			? exam.title + ' (Data hanya akan diperbaharui ketika ada aktivitas)'
+			: 'Memuat...'}
 		backUrl="/admin/exams"
 	>
 		<div class="flex items-center gap-3">

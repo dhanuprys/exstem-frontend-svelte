@@ -13,6 +13,17 @@ export interface Student {
 	updated_at?: string;
 }
 
+export interface StudentCardInfo {
+	id: number;
+	nis: string;
+	nisn: string;
+	name: string;
+	password?: string;
+	class_name: string;
+	grade_level: string;
+	major_name: string;
+}
+
 export interface CreateStudentRequest {
 	nis: string;
 	nisn: string;
@@ -50,6 +61,21 @@ class StudentService {
 	}
 
 	/**
+	 * Get student cards data
+	 */
+	public async getStudentCards(classId?: number, gradeLevel?: string, majorCode?: string) {
+		const params = new URLSearchParams();
+		if (classId) params.append('class_id', classId.toString());
+		if (gradeLevel) params.append('grade_level', gradeLevel);
+		if (majorCode) params.append('major_code', majorCode);
+
+		const queryString = params.toString();
+		const url = `/admin/students-cards${queryString ? `?${queryString}` : ''}`;
+
+		return api.get<ApiResponse<{ cards: StudentCardInfo[] }>>(url);
+	}
+
+	/**
 	 * Delete a student
 	 */
 	public async deleteStudent(id: number) {
@@ -61,6 +87,32 @@ class StudentService {
 	 */
 	public async resetSession(id: number) {
 		return api.post<ApiResponse<{ message: string }>>(`/admin/students/${id}/reset-session`);
+	}
+
+	/**
+	 * Download student cards as an A4 PDF
+	 */
+	public async downloadStudentCardsPDF(classId?: number, gradeLevel?: string, majorCode?: string) {
+		const params = new URLSearchParams();
+		if (classId) params.append('class_id', classId.toString());
+		if (gradeLevel) params.append('grade_level', gradeLevel);
+		if (majorCode) params.append('major_code', majorCode);
+
+		const queryString = params.toString();
+		const url = `/admin/students-cards/pdf${queryString ? `?${queryString}` : ''}`;
+
+		const response = await api.get(url, { responseType: 'blob' });
+
+		// Trigger a browser download
+		const blob = new Blob([response.data], { type: 'application/pdf' });
+		const downloadUrl = window.URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = downloadUrl;
+		a.download = 'kartu-siswa.pdf';
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+		window.URL.revokeObjectURL(downloadUrl);
 	}
 }
 

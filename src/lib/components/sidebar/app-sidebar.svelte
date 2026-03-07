@@ -39,6 +39,16 @@
 								title: 'Daftar Siswa',
 								url: '/admin/students',
 								requiredPermission: PERMISSIONS.STUDENTS_READ
+							},
+							{
+								title: 'Kartu Siswa',
+								url: '/admin/students-cards',
+								requiredPermission: PERMISSIONS.STUDENTS_READ
+							},
+							{
+								title: 'Ruangan',
+								url: '/admin/rooms',
+								requiredPermission: PERMISSIONS.ROOMS_READ
 							}
 						]
 					},
