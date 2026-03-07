@@ -21,10 +21,6 @@
 
 	let activeQuestion = $derived<Question | null>(questions[activeQuestionIndex] ?? null);
 
-	function getTotalScore(qs: Question[]): number {
-		return qs.reduce((acc, q) => acc + (Number(q.score_value) || 0), 0);
-	}
-
 	// ─── Load ─────────────────────────────────────────────────────────
 	onMount(async () => {
 		try {
@@ -45,8 +41,7 @@
 				question_type: 'MULTIPLE_CHOICE',
 				options: ['', '', '', '', ''],
 				correct_option: '0',
-				order_num: questions.length + 1,
-				score_value: 1
+				order_num: questions.length + 1
 			}
 		];
 		activeQuestionIndex = questions.length - 1;
@@ -94,25 +89,22 @@
 		}
 	}
 
-	// ─── DOCX Import ──────────────────────────────────────────────────
 	function copyTemplate() {
-		const template = `[SOAL 1]
-Siapa nama presiden pertama Indonesia?
-[A] Soekarno
-[B] Soeharto
-[C] B.J. Habibie
-[D] Megawati
-[E] Joko Widodo
-[JAWABAN] A
+		const template = `Soal:1) Siapa nama presiden pertama Indonesia?
+A: Soekarno
+B: Soeharto
+C: B.J. Habibie
+D: Megawati
+E: Joko Widodo
+Kunci: A
 
-[SOAL 2]
-Warna bendera Indonesia dari atas ke bawah adalah?
-[A] Putih dan Merah
-[B] Merah dan Putih
-[C] Hijau dan Kuning
-[D] Biru dan Putih
-[E] Hitam dan Putih
-[JAWABAN] B`;
+Soal:2) Warna bendera Indonesia dari atas ke bawah adalah?
+A: Putih dan Merah
+B: Merah dan Putih
+C: Hijau dan Kuning
+D: Biru dan Putih
+E: Hitam dan Putih
+Kunci: B`;
 		navigator.clipboard.writeText(template);
 		toast.success('Template berhasil disalin ke clipboard');
 	}
@@ -202,12 +194,6 @@ Warna bendera Indonesia dari atas ke bawah adalah?
 			</Button>
 		</div>
 		<div class="flex items-center gap-4">
-			<!-- <div class="flex items-center gap-2 rounded-lg bg-muted/50 px-4 py-2">
-				<span class="text-xs font-bold tracking-widest text-muted-foreground uppercase"
-					>Total Bobot:</span
-				>
-				<span class="text-lg font-black text-primary">{getTotalScore(questions)}</span>
-			</div> -->
 			<Button
 				variant="default"
 				class="font-bold shadow-sm"
@@ -278,30 +264,13 @@ Warna bendera Indonesia dari atas ke bawah adalah?
 			{#if activeQuestion !== null && questions.length > 0}
 				{@const currentQ = questions[activeQuestionIndex]}
 
-				<!-- Header row -->
-				<div class="mb-8 flex items-end justify-between border-b pb-4">
-					<div>
-						<h3 class="text-xl font-bold tracking-tight">
-							Edit Soal Nomor {activeQuestionIndex + 1}
-						</h3>
-						<p class="mt-1 text-sm text-muted-foreground">
-							Gunakan editor Rich Text untuk memasukkan teks, rumus, gambar, atau media.
-						</p>
-					</div>
-					<!-- <div class="flex items-center gap-3 rounded-lg border bg-muted/10 px-4 py-2 shadow-sm">
-						<label
-							for={`score_${activeQuestionIndex}`}
-							class="text-sm font-bold tracking-widest text-muted-foreground uppercase"
-							>Bobot Skor:</label
-						>
-						<input
-							id={`score_${activeQuestionIndex}`}
-							type="number"
-							min="1"
-							bind:value={currentQ.score_value}
-							class="h-9 w-20 rounded-md border text-center text-lg font-bold shadow-sm focus-visible:ring-1 focus-visible:ring-primary focus-visible:outline-none"
-						/>
-					</div> -->
+				<div class="mb-8 border-b pb-4">
+					<h3 class="text-xl font-bold tracking-tight">
+						Edit Soal Nomor {activeQuestionIndex + 1}
+					</h3>
+					<p class="mt-1 text-sm text-muted-foreground">
+						Gunakan editor Rich Text untuk memasukkan teks, rumus, gambar, atau media.
+					</p>
 				</div>
 
 				<!-- Question text -->

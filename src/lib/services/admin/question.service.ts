@@ -11,7 +11,6 @@ export interface Question {
 	options: any;
 	correct_option: string;
 	order_num: number;
-	score_value: number;
 }
 
 export interface QBank {

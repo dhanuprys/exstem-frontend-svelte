@@ -1,4 +1,4 @@
-import type { Question } from './exam.service';
+import type { Question } from './question.service';
 
 export interface DocxFormatConfig {
 	questionPattern: RegExp;
@@ -7,12 +7,18 @@ export interface DocxFormatConfig {
 }
 
 export const defaultDocxFormat: DocxFormatConfig = {
-	// Strictly requires brackets: [SOAL] or [SOAL 1]
-	questionPattern: /^\[SOAL(?:\s+\d+)?\]/i,
-	// Strictly requires brackets: [JAWABAN] A
-	answerPattern: /^\[JAWABAN\]\s*([A-E])/i,
-	// Strictly requires brackets: [A], [B], [C], [D], [E]
-	optionPatterns: [/^\[A\]/i, /^\[B\]/i, /^\[C\]/i, /^\[D\]/i, /^\[E\]/i]
+	// Matches: [SOAL 1]  OR  Soal:1)  OR  Soal: 1)
+	questionPattern: /^(?:\[SOAL(?:\s+\d+)?\]|Soal\s*:\s*\d+\))/i,
+	// Matches: [Kunci] A  OR  Kunci: A  OR  Kunci : A
+	answerPattern: /^(?:\[Kunci\]\s*|Kunci\s*:\s*)([A-E])/i,
+	// Matches: [A]  OR  A:  (letter followed by colon at line start)
+	optionPatterns: [
+		/^(?:\[A\]|A\s*:)/i,
+		/^(?:\[B\]|B\s*:)/i,
+		/^(?:\[C\]|C\s*:)/i,
+		/^(?:\[D\]|D\s*:)/i,
+		/^(?:\[E\]|E\s*:)/i
+	]
 };
 
 type ParseState = 'IDLE' | 'QUESTION' | 'OPTION' | 'ANSWER';
@@ -83,8 +89,7 @@ export class DocxParserUtils {
 					question_type: 'MULTIPLE_CHOICE',
 					options: currentQuestion.options.map((o: string) => o.trim()),
 					correct_option: currentQuestion.correct_option ?? '0',
-					order_num: orderNum,
-					score_value: 1
+					order_num: orderNum
 				};
 				questions.push(formattedQuestion);
 			}

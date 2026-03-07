@@ -1,41 +1,42 @@
-# ── Stage 1: Build the SvelteKit app ─────────────────────────────────
-FROM node:22-slim AS builder
+# Stage 1: Build
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copy everything needed for npm ci + build
-COPY package.json package-lock.json svelte.config.js vite.config.ts tsconfig.json ./
+# Copy package management files
+# Including .npmrc in case there are private registry configurations
+COPY package*.json .npmrc* ./
 
+# Install all dependencies (including devDependencies required for the build)
 RUN npm ci
 
-# Copy the rest of the source code explicitly to avoid COPY . . shadowing node_modules
-COPY src ./src
-COPY static ./static
-COPY components.json eslint.config.js ./
+# Copy the rest of the application code
+COPY . .
 
+# Build the SvelteKit application
 RUN npm run build
 
-# Prune dev dependencies so only production deps remain
+# Remove development dependencies to keep the production image lean
 RUN npm prune --omit=dev
 
-# ── Stage 2: Minimal production image ────────────────────────────────
-FROM node:22-slim AS runner
+
+# Stage 2: Production
+FROM node:22-alpine AS production
 
 WORKDIR /app
 
+# Set environment variables for production
 ENV NODE_ENV=production
-ENV ORIGIN=http://localhost:3000
+ENV HOST=0.0.0.0
+ENV PORT=3000
 
-# Security: run as non-root
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
-
-# Copy only what's needed to run
+# Copy necessary build artifacts from the builder stage
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
 
-USER appuser
-
+# Expose the port that the application listens on
 EXPOSE 3000
 
-CMD ["node", "build"]
+# Run the SvelteKit node server
+CMD ["node", "build/index.js"]
