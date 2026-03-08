@@ -10,8 +10,10 @@
 	import { classService, type Class } from '$lib/services/admin/class.service';
 	import StudentForm from './student-form.svelte';
 	import { toast } from 'svelte-sonner';
-	import { Plus, Pencil, Trash2, Loader2, KeyRound } from '@lucide/svelte';
+	import { Plus, Pencil, Trash2, Loader2, KeyRound, Search } from '@lucide/svelte';
 	import type { Pagination } from '$lib/types/api';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 
 	let students: Student[] = $state([]);
 	let classes: Class[] = $state([]);
@@ -20,7 +22,31 @@
 	let isSaving = $state(false);
 
 	// Filter state
-	let selectedClassFilter = $state<string | undefined>(undefined);
+	let filterSearch = $state('');
+	let filterGradeLevel = $state<string | undefined>(undefined);
+	let filterMajorCode = $state<string | undefined>(undefined);
+	let filterGroupNumber = $state<string | undefined>(undefined);
+	let filterReligion = $state<string | undefined>(undefined);
+
+	// Derived arrays for dropdowns based on loaded classes
+	let uniqueGrades = $derived([...new Set(classes.map((c) => c.grade_level))].sort());
+	let uniqueMajors = $derived([...new Set(classes.map((c) => c.major_code))].sort());
+	let uniqueGroups = $derived([...new Set(classes.map((c) => c.group_number))].sort((a, b) => a - b));
+
+	// Debounce timer
+	let debounceTimer: ReturnType<typeof setTimeout>;
+
+	function handleFilterChange() {
+		clearTimeout(debounceTimer);
+		debounceTimer = setTimeout(() => {
+			loadData(1);
+		}, 500);
+	}
+
+	$effect(() => {
+		filterSearch; filterGradeLevel; filterMajorCode; filterGroupNumber; filterReligion;
+		handleFilterChange();
+	});
 
 	// Dialog State
 	let isDialogOpen = $state(false);
@@ -46,12 +72,14 @@
 	async function loadData(page = 1) {
 		isLoading = true;
 		try {
-			const classIdParam =
-				selectedClassFilter && selectedClassFilter !== 'all'
-					? parseInt(selectedClassFilter)
-					: undefined;
+			const filters: any = {};
+			if (filterSearch) filters.search = filterSearch;
+			if (filterGradeLevel && filterGradeLevel !== 'all') filters.gradeLevel = filterGradeLevel;
+			if (filterMajorCode && filterMajorCode !== 'all') filters.majorCode = filterMajorCode;
+			if (filterGroupNumber && filterGroupNumber !== 'all') filters.groupNumber = filterGroupNumber;
+			if (filterReligion && filterReligion !== 'all') filters.religion = filterReligion;
 
-			const res = await studentService.getStudents(page, pagination.per_page, classIdParam);
+			const res = await studentService.getStudents(page, pagination.per_page, filters);
 			students = res.data.data.students || [];
 			if (res.data.pagination) {
 				pagination = res.data.pagination;
@@ -205,6 +233,80 @@
 		</Button>
 	</PageHeader>
 
+	<!-- Filters -->
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+		<div class="relative">
+			<Search class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+			<Input placeholder="Cari Nama, NIS, NISN..." bind:value={filterSearch} class="pl-8" />
+		</div>
+
+		<Select.Root
+			type="single"
+			value={filterGradeLevel}
+			onValueChange={(v) => (filterGradeLevel = v)}
+		>
+			<Select.Trigger>
+				{filterGradeLevel && filterGradeLevel !== 'all' ? filterGradeLevel : 'Tingkat Kelas'}
+			</Select.Trigger>
+			<Select.Content>
+				<Select.Item value="all" label="Semua">Semua Tingkat</Select.Item>
+				{#each uniqueGrades as grade}
+					<Select.Item value={grade} label={grade}>{grade}</Select.Item>
+				{/each}
+			</Select.Content>
+		</Select.Root>
+
+		<Select.Root
+			type="single"
+			value={filterMajorCode}
+			onValueChange={(v) => (filterMajorCode = v)}
+		>
+			<Select.Trigger>
+				{filterMajorCode && filterMajorCode !== 'all' ? filterMajorCode : 'Jurusan'}
+			</Select.Trigger>
+			<Select.Content>
+				<Select.Item value="all" label="Semua">Semua Jurusan</Select.Item>
+				{#each uniqueMajors as major}
+					<Select.Item value={major} label={major}>{major}</Select.Item>
+				{/each}
+			</Select.Content>
+		</Select.Root>
+
+		<Select.Root
+			type="single"
+			value={filterGroupNumber}
+			onValueChange={(v) => (filterGroupNumber = v)}
+		>
+			<Select.Trigger>
+				{filterGroupNumber && filterGroupNumber !== 'all' ? filterGroupNumber : 'Rombel'}
+			</Select.Trigger>
+			<Select.Content>
+				<Select.Item value="all" label="Semua">Semua Rombel</Select.Item>
+				{#each uniqueGroups as group}
+					<Select.Item value={group.toString()} label={group.toString()}>{group}</Select.Item>
+				{/each}
+			</Select.Content>
+		</Select.Root>
+		<Select.Root
+			type="single"
+			value={filterReligion}
+			onValueChange={(v) => (filterReligion = v)}
+		>
+			<Select.Trigger>
+				{filterReligion && filterReligion !== 'all' ? filterReligion : 'Semua Agama'}
+			</Select.Trigger>
+			<Select.Content>
+				<Select.Item value="all" label="Semua Agama">Semua Agama</Select.Item>
+				<Select.Item value="Islam" label="Islam">Islam</Select.Item>
+				<Select.Item value="Kristen" label="Kristen">Kristen</Select.Item>
+				<Select.Item value="Katolik" label="Katolik">Katolik</Select.Item>
+				<Select.Item value="Hindu" label="Hindu">Hindu</Select.Item>
+				<Select.Item value="Buddha" label="Buddha">Buddha</Select.Item>
+				<Select.Item value="Konghucu" label="Konghucu">Konghucu</Select.Item>
+			</Select.Content>
+		</Select.Root>
+	</div>
+
 	<div class="rounded-md border">
 		<Table.Root>
 			<Table.Header>
@@ -215,6 +317,7 @@
 					<Table.Head>L/P</Table.Head>
 					<Table.Head>Agama</Table.Head>
 					<Table.Head>Kelas</Table.Head>
+					<Table.Head>Kata Sandi</Table.Head>
 					<Table.Head class="text-right">Aksi</Table.Head>
 				</Table.Row>
 			</Table.Header>
@@ -236,6 +339,7 @@
 							<Table.Cell>{student.gender === 'Laki-laki' ? 'L' : 'P'}</Table.Cell>
 							<Table.Cell>{student.religion}</Table.Cell>
 							<Table.Cell>{getClassLabel(student.class_id)}</Table.Cell>
+							<Table.Cell class="font-mono text-sm">{student.password || '-'}</Table.Cell>
 							<Table.Cell class="text-right">
 								<div class="flex justify-end gap-2">
 									<Button

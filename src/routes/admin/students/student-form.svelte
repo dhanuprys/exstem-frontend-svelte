@@ -2,6 +2,8 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { Wand2 } from '@lucide/svelte';
 	import type { Class } from '$lib/services/admin/class.service';
 
 	export let nis: string = '';
@@ -43,6 +45,15 @@
 		if (v) {
 			classId = parseInt(v);
 		}
+	}
+
+	function generatePassword() {
+		const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+		let result = '';
+		for (let i = 0; i < 6; i++) {
+			result += chars.charAt(Math.floor(Math.random() * chars.length));
+		}
+		password = result;
 	}
 </script>
 
@@ -133,11 +144,17 @@
 
 	<div class="grid gap-2">
 		<Label for="password">Kata Sandi {isEdit ? '' : '*'}</Label>
-		<Input
-			id="password"
-			type="password"
-			bind:value={password}
-			placeholder={isEdit ? 'Kosongkan jika tidak diubah' : 'Pilih kata sandi'}
-		/>
+		<div class="flex gap-2">
+			<Input
+				id="password"
+				type="text"
+				bind:value={password}
+				placeholder={isEdit ? 'Kosongkan jika tidak diubah' : 'Pilih kata sandi'}
+				class="flex-1"
+			/>
+			<Button variant="outline" size="icon" onclick={generatePassword} type="button" title="Buat Sandi Otomatis">
+				<Wand2 class="h-4 w-4" />
+			</Button>
+		</div>
 	</div>
 </div>

@@ -16,9 +16,9 @@
 		Trash2,
 		FileText,
 		Loader2,
-		PlayCircle,
 		Activity,
-		Users
+		Users,
+		Clock
 	} from '@lucide/svelte';
 	import type { Pagination } from '$lib/types/api';
 
@@ -214,14 +214,6 @@
 										onclick={() => goto(`/admin/exams/${exam.id}/monitor`)}
 									>
 										<Activity class="h-4 w-4" />
-									</Button>
-									<Button
-										variant="ghost"
-										size="icon"
-										title="Distribusi / Jadwal Ujian"
-										onclick={() => goto(`/admin/exams/${exam.id}/distribute`)}
-									>
-										<Users class="h-4 w-4" />
 									</Button>
 									<Button
 										variant="ghost"

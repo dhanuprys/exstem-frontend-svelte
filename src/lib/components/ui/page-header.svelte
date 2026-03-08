@@ -12,7 +12,7 @@
 	}>();
 </script>
 
-<div class="flex items-center justify-between space-y-2">
+<div class="flex items-center justify-between gap-4 space-y-2">
 	<div class="flex items-center gap-4">
 		{#if backUrl}
 			<Button variant="outline" size="icon" onclick={() => goto(backUrl)}>

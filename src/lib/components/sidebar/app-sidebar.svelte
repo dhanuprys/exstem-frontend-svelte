@@ -6,6 +6,7 @@
 	import FileTextIcon from '@lucide/svelte/icons/file-text';
 	import SettingsIcon from '@lucide/svelte/icons/settings';
 	import BriefcaseIcon from '@lucide/svelte/icons/briefcase';
+	import DoorOpenIcon from '@lucide/svelte/icons/door-open';
 	import { PERMISSIONS } from '$lib/types/permissions';
 
 	// This is sample data.
@@ -44,10 +45,23 @@
 								title: 'Kartu Siswa',
 								url: '/admin/students-cards',
 								requiredPermission: PERMISSIONS.STUDENTS_READ
+							}
+						]
+					},
+					{
+						title: 'Ruangan',
+						url: '#',
+						icon: DoorOpenIcon,
+						requiredPermission: PERMISSIONS.ROOMS_READ,
+						items: [
+							{
+								title: 'Daftar Ruangan',
+								url: '/admin/rooms',
+								requiredPermission: PERMISSIONS.ROOMS_READ
 							},
 							{
-								title: 'Ruangan',
-								url: '/admin/rooms',
+								title: 'Pembagian Ruangan',
+								url: '/admin/room-assignments',
 								requiredPermission: PERMISSIONS.ROOMS_READ
 							}
 						]

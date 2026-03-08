@@ -8,6 +8,7 @@ export interface Student {
 	name: string;
 	gender: string;
 	religion: string;
+	password?: string;
 	class_id: number;
 	created_at?: string;
 	updated_at?: string;
@@ -22,6 +23,8 @@ export interface StudentCardInfo {
 	class_name: string;
 	grade_level: string;
 	major_name: string;
+	room_name?: string;
+	seat_number?: number;
 }
 
 export interface CreateStudentRequest {
@@ -52,11 +55,34 @@ class StudentService {
 	/**
 	 * Get all the students for the admin
 	 */
-	public async getStudents(page: number = 1, perPage: number = 10, classId?: number) {
-		let url = `/admin/students?page=${page}&per_page=${perPage}`;
-		if (classId) {
-			url += `&class_id=${classId}`;
+	public async getStudents(
+		page: number = 1,
+		perPage: number = 10,
+		filters?: {
+			classId?: number;
+			search?: string;
+			religion?: string;
+			gradeLevel?: string;
+			majorCode?: string;
+			groupNumber?: string;
 		}
+	) {
+		const params = new URLSearchParams();
+		params.append('page', page.toString());
+		params.append('per_page', perPage.toString());
+
+		if (filters) {
+			if (filters.classId) params.append('class_id', filters.classId.toString());
+			if (filters.search) params.append('search', filters.search);
+			if (filters.religion) params.append('religion', filters.religion);
+			if (filters.gradeLevel) params.append('grade_level', filters.gradeLevel);
+			if (filters.majorCode) params.append('major_code', filters.majorCode);
+			if (filters.groupNumber) params.append('group_number', filters.groupNumber);
+		}
+
+		const queryString = params.toString();
+		const url = `/admin/students?${queryString}`;
+
 		return api.get<ApiResponse<{ students: Student[]; pagination: Pagination }>>(url);
 	}
 

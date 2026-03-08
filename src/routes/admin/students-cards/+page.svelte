@@ -258,6 +258,17 @@
 							</div>
 						</div>
 
+						<div>
+							<div
+								class="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase"
+							>
+								Ruangan / Kursi
+							</div>
+							<div class="text-sm font-medium">
+								{student.room_name ? `${student.room_name} / Kursi ${student.seat_number}` : '-'}
+							</div>
+						</div>
+
 						<div
 							class="border-t-2 border-dashed border-border pt-4"
 						>
