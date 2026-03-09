@@ -26,12 +26,15 @@
 		school_name: '',
 		school_location: '',
 		school_logo_url: '',
+		letterhead_url: '',
 		login_bg_url: ''
 	});
 
 	let fileInput: HTMLInputElement | undefined = $state();
 	let bgInput: HTMLInputElement | undefined = $state();
+	let letterheadInput: HTMLInputElement | undefined = $state();
 	let isUploadingBg = $state(false);
+	let isUploadingLetterhead = $state(false);
 
 	async function handleBgUpload(event: Event) {
 		const target = event.target as HTMLInputElement;
@@ -53,6 +56,28 @@
 
 	function triggerBgInput() {
 		bgInput?.click();
+	}
+
+	async function handleLetterheadUpload(event: Event) {
+		const target = event.target as HTMLInputElement;
+		const file = target.files?.[0];
+		if (!file) return;
+
+		isUploadingLetterhead = true;
+		try {
+			const res = await mediaService.uploadImage(file);
+			settings.letterhead_url = res.data.data.url;
+			toast.success('Kop Surat berhasil diunggah');
+		} catch (error) {
+			toast.error('Gagal mengunggah Kop Surat');
+		} finally {
+			isUploadingLetterhead = false;
+			if (letterheadInput) letterheadInput.value = '';
+		}
+	}
+
+	function triggerLetterheadInput() {
+		letterheadInput?.click();
 	}
 
 	async function loadData() {
@@ -194,6 +219,46 @@
 									class="hidden"
 									bind:this={fileInput}
 									onchange={handleFileUpload}
+								/>
+							</div>
+						</div>
+					</div>
+
+					<div class="mt-6 grid gap-4 border-t pt-6">
+						<Label>Kop Surat (Letterhead)</Label>
+						<div class="flex items-start gap-6">
+							<div
+								class="relative flex h-24 w-full max-w-sm shrink-0 items-center justify-center overflow-hidden rounded-md border border-dashed bg-muted/50"
+							>
+								{#if settings.letterhead_url}
+									<img
+										src={overrideAssetPath(settings.letterhead_url)}
+										alt="Kop Surat"
+										class="h-full w-full object-contain"
+									/>
+								{:else}
+									<span class="text-xs text-muted-foreground">Tidak Ada Kop Surat</span>
+								{/if}
+							</div>
+							<div class="grid gap-2">
+								<Button variant="outline" onclick={triggerLetterheadInput} disabled={isUploadingLetterhead}>
+									{#if isUploadingLetterhead}
+										<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+										Mengunggah...
+									{:else}
+										<Upload class="mr-2 h-4 w-4" />
+										Unggah Kop Surat Baru
+									{/if}
+								</Button>
+								<p class="text-[0.8rem] text-muted-foreground">
+									Resolusi ideal untuk file XLSX (A4 Portrait/Landscape) adalah <strong>210mm x 35mm</strong>. Gunakan format PNG/JPG memanjang.
+								</p>
+								<input
+									type="file"
+									accept="image/*"
+									class="hidden"
+									bind:this={letterheadInput}
+									onchange={handleLetterheadUpload}
 								/>
 							</div>
 						</div>
