@@ -150,7 +150,9 @@ export class DocxParserUtils {
 				// The question label ([SOAL N]) is on its own line in mammoth output,
 				// so there is usually no trailing text here — but handle it just in case.
 				const cleanedHtml = getCleanedNodeHtml(node, config.questionPattern);
-				if (cleanedHtml && cleanedHtml.replace(/<[^>]+>/g, '').trim()) {
+				const hasValidContent =
+					/<img/i.test(cleanedHtml) || cleanedHtml.replace(/<[^>]+>/g, '').trim() !== '';
+				if (cleanedHtml && hasValidContent) {
 					currentBuffer += cleanedHtml;
 				}
 				continue;
@@ -179,7 +181,9 @@ export class DocxParserUtils {
 						currentOptionIndex = optIdx;
 
 						const cleanedHtml = getCleanedNodeHtml(node, config.optionPatterns[optIdx]);
-						if (cleanedHtml && cleanedHtml.replace(/<[^>]+>/g, '').trim()) {
+						const hasValidContent =
+							/<img/i.test(cleanedHtml) || cleanedHtml.replace(/<[^>]+>/g, '').trim() !== '';
+						if (cleanedHtml && hasValidContent) {
 							currentBuffer += cleanedHtml;
 						}
 						matchedOption = true;
