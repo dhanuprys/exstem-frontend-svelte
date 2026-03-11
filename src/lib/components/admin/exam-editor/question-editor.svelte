@@ -17,6 +17,7 @@
 	let isLoading = $state(true);
 	let isSaving = $state(false);
 	let isImportingDocx = $state(false);
+	let uploadedImageCount = $state(0);
 	let fileInputDocx: HTMLInputElement | undefined = $state();
 
 	let activeQuestion = $derived<Question | null>(questions[activeQuestionIndex] ?? null);
@@ -115,6 +116,7 @@ Kunci: B`;
 		if (!file) return;
 
 		isImportingDocx = true;
+		uploadedImageCount = 0;
 		try {
 			const arrayBuffer = await file.arrayBuffer();
 			const options = {
@@ -127,6 +129,7 @@ Kunci: B`;
 								type: image.contentType
 							});
 							const uploadRes = await mediaService.uploadImage(uploadedFile);
+							uploadedImageCount++;
 							return { src: uploadRes.data.data.url };
 						} catch {
 							return { src: '' };
@@ -177,10 +180,15 @@ Kunci: B`;
 			>
 				{#if isImportingDocx}
 					<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+					{#if uploadedImageCount > 0}
+						Mengunggah {uploadedImageCount} gambar...
+					{:else}
+						Memproses DOCX...
+					{/if}
 				{:else}
 					<Upload class="mr-2 h-4 w-4" />
+					Import DOCX
 				{/if}
-				Import DOCX
 			</Button>
 			<input
 				type="file"
