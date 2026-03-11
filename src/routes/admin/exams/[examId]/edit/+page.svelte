@@ -44,6 +44,8 @@
 	let formRandomizeQuestions = $state(true);
 	let formCheatRules = $state<Record<string, boolean>>({});
 
+	let formErrors = $state<Record<string, string>>({});
+
 	async function loadInitialData() {
 		isLoading = true;
 		try {
@@ -98,6 +100,7 @@
 
 	async function saveInformation() {
 		isSaving = true;
+		formErrors = {}; // Reset errors before saving
 		try {
 			// Clean up cheat rules (omit false/empty)
 			const cleanCheatRules: Record<string, boolean> = {};
@@ -121,8 +124,14 @@
 			toast.success('Informasi ujian berhasil disimpan');
 			if (exam) exam.status = 'DRAFT';
 		} catch (err: any) {
-			const message = err.response?.data?.error?.message || 'Gagal menyimpan informasi';
-			toast.error(message);
+			const errPayload = err.response?.data?.error;
+			if (errPayload?.code === 'VALIDATION_ERROR' && errPayload.fields) {
+				formErrors = errPayload.fields;
+				toast.error(errPayload.message || 'Validasi gagal. Silakan periksa masukan Anda.');
+			} else {
+				const message = errPayload?.message || 'Gagal menyimpan informasi';
+				toast.error(message);
+			}
 		} finally {
 			isSaving = false;
 		}
@@ -201,12 +210,20 @@
 
 	async function publishExam() {
 		isPublishing = true;
+		formErrors = {}; // Reset errors before publishing
 		try {
 			await examService.publishExam(examId);
 			toast.success('Ujian berhasil diterbitkan!');
 			if (exam) exam.status = 'PUBLISHED';
-		} catch (err) {
-			toast.error('Gagal menerbitkan ujian');
+		} catch (err: any) {
+			const errPayload = err.response?.data?.error;
+			if (errPayload?.code === 'VALIDATION_ERROR' && errPayload.fields) {
+				formErrors = errPayload.fields;
+				toast.error(errPayload.message || 'Validasi gagal. Silakan periksa masukan Anda.');
+			} else {
+				const message = errPayload?.message || 'Gagal menerbitkan ujian';
+				toast.error(message);
+			}
 		} finally {
 			isPublishing = false;
 		}
@@ -282,6 +299,7 @@
 					bind:formRandomizeQuestions
 					bind:formCheatRules
 					{isSaving}
+					{formErrors}
 					onsave={saveInformation}
 				/>
 			</div>

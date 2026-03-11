@@ -14,6 +14,7 @@
 		formRandomizeQuestions = $bindable(),
 		formCheatRules = $bindable(),
 		isSaving,
+		formErrors,
 		onsave
 	} = $props<{
 		formTitle: string;
@@ -26,9 +27,11 @@
 		formRandomizeQuestions: boolean;
 		formCheatRules: Record<string, boolean>;
 		isSaving: boolean;
+		formErrors: Record<string, string>;
 		onsave: () => void;
 	}>();
 
+	import * as Field from '$lib/components/ui/field/index.js';
 	import { questionService, type QBank } from '$lib/services/admin/question.service';
 	import { Check, ChevronsUpDown, Search } from '@lucide/svelte';
 	import { onMount, onDestroy } from 'svelte';
@@ -87,27 +90,28 @@
 	</div>
 
 	<div class="space-y-8">
-		<div class="space-y-3">
-			<label for="title" class="text-sm font-semibold text-foreground/90"
-				>Judul Ujian <span class="text-destructive">*</span></label
-			>
+		<Field.Field>
+			<Field.Label for="title">Judul Ujian <span class="text-destructive">*</span></Field.Label>
 			<input
 				id="title"
 				bind:value={formTitle}
+				aria-invalid={!!formErrors.title}
 				class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
 			/>
-		</div>
+			{#if formErrors.title}
+				<Field.Error>{formErrors.title}</Field.Error>
+			{/if}
+		</Field.Field>
 		<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-			<div class="space-y-3">
-				<label for="duration" class="text-sm font-semibold text-foreground/90"
-					>Durasi Pengerjaan (Menit) <span class="text-destructive">*</span></label
-				>
+			<Field.Field>
+				<Field.Label for="duration">Durasi Pengerjaan (Menit) <span class="text-destructive">*</span></Field.Label>
 				<div class="relative">
 					<input
 						id="duration"
 						type="number"
 						bind:value={formDuration}
 						min="1"
+						aria-invalid={!!formErrors.duration_minutes}
 						class="flex h-11 w-full rounded-md border border-input bg-background px-4 py-2 text-sm shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none"
 					/>
 					<div
@@ -116,21 +120,26 @@
 						Menit
 					</div>
 				</div>
-			</div>
-			<div class="space-y-3">
-				<label for="token" class="text-sm font-semibold text-foreground/90"
-					>Token Ujian (Digenerasi Otomatis)</label
-				>
+				{#if formErrors.duration_minutes}
+					<Field.Error>{formErrors.duration_minutes}</Field.Error>
+				{/if}
+			</Field.Field>
+			<Field.Field>
+				<Field.Label for="token">Token Ujian (Digenerasi Otomatis)</Field.Label>
 				<input
 					id="token"
 					value={formToken}
 					readonly
+					aria-invalid={!!formErrors.entry_token}
 					class="flex h-11 w-full cursor-not-allowed rounded-md border border-input bg-muted/50 px-4 py-2 font-mono text-sm font-bold tracking-[0.2em] text-muted-foreground shadow-sm focus-visible:outline-none"
 				/>
-			</div>
+				{#if formErrors.entry_token}
+					<Field.Error>{formErrors.entry_token}</Field.Error>
+				{/if}
+			</Field.Field>
 		</div>
-		<div class="relative space-y-3">
-			<label for="qbank" class="text-sm font-semibold text-foreground/90">Bank Soal</label>
+		<Field.Field class="relative">
+			<Field.Label for="qbank">Bank Soal</Field.Label>
 
 			<div class="relative w-full">
 				<button
@@ -208,47 +217,56 @@
 					</div>
 				{/if}
 			</div>
-		</div>
+			{#if formErrors.qbank_id}
+				<Field.Error>{formErrors.qbank_id}</Field.Error>
+			{/if}
+		</Field.Field>
 		<div class="grid grid-cols-1 gap-6 rounded-lg border bg-muted/20 p-4 md:grid-cols-2">
-			<div class="space-y-3">
-				<label for="start" class="text-sm font-semibold text-foreground/90"
-					>Jadwal Mulai Tepat Waktu (Opsional)</label
-				>
+			<Field.Field>
+				<Field.Label for="start">Jadwal Mulai Tepat Waktu (Opsional)</Field.Label>
 				<input
 					id="start"
 					type="datetime-local"
 					bind:value={formScheduledStart}
+					aria-invalid={!!formErrors.scheduled_start}
 					class="flex h-11 w-full rounded-md border border-input bg-background px-4 py-2 text-sm shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none"
 				/>
-			</div>
-			<div class="space-y-3">
-				<label for="end" class="text-sm font-semibold text-foreground/90"
-					>Jadwal Terakhir / Ditutup (Opsional)</label
-				>
+				{#if formErrors.scheduled_start}
+					<Field.Error>{formErrors.scheduled_start}</Field.Error>
+				{/if}
+			</Field.Field>
+			<Field.Field>
+				<Field.Label for="end">Jadwal Terakhir / Ditutup (Opsional)</Field.Label>
 				<input
 					id="end"
 					type="datetime-local"
 					bind:value={formScheduledEnd}
+					aria-invalid={!!formErrors.scheduled_end}
 					class="flex h-11 w-full rounded-md border border-input bg-background px-4 py-2 text-sm shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none"
 				/>
-			</div>
+				{#if formErrors.scheduled_end}
+					<Field.Error>{formErrors.scheduled_end}</Field.Error>
+				{/if}
+			</Field.Field>
 		</div>
 		<div class="grid grid-cols-1 gap-6 rounded-lg border bg-muted/20 p-4 md:grid-cols-2">
-			<div class="space-y-3">
-				<label for="count" class="text-sm font-semibold text-foreground/90"
-					>Jumlah Soal yang Ditampilkan</label
-				>
+			<Field.Field>
+				<Field.Label for="count">Jumlah Soal yang Ditampilkan</Field.Label>
 				<input
 					id="count"
 					type="number"
 					bind:value={formQuestionCount}
 					min="1"
+					aria-invalid={!!formErrors.question_count}
 					class="flex h-11 w-full rounded-md border border-input bg-background px-4 py-2 text-sm shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none"
 				/>
-				<p class="text-xs text-muted-foreground">
+				<Field.Description>
 					Jika diatur lebih kecil dari jumlah soal pada bank soal, soal akan diambil secara acak.
-				</p>
-			</div>
+				</Field.Description>
+				{#if formErrors.question_count}
+					<Field.Error>{formErrors.question_count}</Field.Error>
+				{/if}
+			</Field.Field>
 			<div class="flex flex-col justify-center space-y-3">
 				<label class="flex cursor-pointer items-center space-x-3 pt-6">
 					<input
