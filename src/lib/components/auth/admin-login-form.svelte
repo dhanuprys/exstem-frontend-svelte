@@ -19,7 +19,7 @@
 
 	const id = $props.id();
 
-	let email = $state('');
+	let identifier = $state('');
 	let password = $state('');
 	let isLoading = $state(false);
 	let error = $state<string | null>(null);
@@ -29,7 +29,7 @@
 		isLoading = true;
 		error = null;
 
-		const result = await profileStore.login(email, password);
+		const result = await profileStore.login(identifier, password);
 		if (!result?.success) {
 			error = result?.error?.message || result?.error?.code || 'Login failed';
 		}
@@ -41,19 +41,19 @@
 <Card.Root class="mx-auto w-full max-w-sm">
 	<Card.Header>
 		<Card.Title class="text-2xl">Login</Card.Title>
-		<Card.Description>Enter your email below to login to your account</Card.Description>
+		<Card.Description>Enter your username or email below to login</Card.Description>
 	</Card.Header>
 	<Card.Content>
 		<form onsubmit={handleLogin}>
 			<FieldGroup>
 				<Field>
-					<FieldLabel for="email-{id}">Email</FieldLabel>
+					<FieldLabel for="identifier-{id}">Username or Email</FieldLabel>
 					<Input
-						id="email-{id}"
-						type="email"
-						placeholder="m@example.com"
+						id="identifier-{id}"
+						type="text"
+						placeholder="admin OR m@example.com"
 						required
-						bind:value={email}
+						bind:value={identifier}
 					/>
 				</Field>
 				<Field>

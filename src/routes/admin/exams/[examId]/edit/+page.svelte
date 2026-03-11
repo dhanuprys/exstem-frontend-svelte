@@ -72,10 +72,10 @@
 			}
 
 			if (exam.scheduled_start) {
-				formScheduledStart = new Date(exam.scheduled_start).toISOString().slice(0, 16);
+				formScheduledStart = exam.scheduled_start.substring(0, 16);
 			}
 			if (exam.scheduled_end) {
-				formScheduledEnd = new Date(exam.scheduled_end).toISOString().slice(0, 16);
+				formScheduledEnd = exam.scheduled_end.substring(0, 16);
 			}
 
 			targetRules = (await examService.getTargetRules(examId)) || [];
@@ -112,10 +112,8 @@
 				title: formTitle,
 				duration_minutes: formDuration,
 				entry_token: formToken || undefined,
-				scheduled_start: formScheduledStart
-					? new Date(formScheduledStart).toISOString()
-					: undefined,
-				scheduled_end: formScheduledEnd ? new Date(formScheduledEnd).toISOString() : undefined,
+				scheduled_start: formScheduledStart ? formScheduledStart : undefined,
+				scheduled_end: formScheduledEnd ? formScheduledEnd : undefined,
 				qbank_id: formQBankID || undefined,
 				question_count: formQuestionCount,
 				randomize_questions: formRandomizeQuestions,

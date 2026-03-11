@@ -23,9 +23,9 @@ class ProfileStore {
 		}
 	}
 
-	async login(email: string, password: string) {
+	async login(identifier: string, password: string) {
 		try {
-			const response = await profileService.login(email, password);
+			const response = await profileService.login(identifier, password);
 			this.admin = response.data.admin;
 			this.permissions = response.data.permissions;
 

@@ -12,8 +12,11 @@ class ProfileService {
 	/**
 	 * Login the admin
 	 */
-	public async login(email: string, password: string): Promise<ApiResponse<AdminLoginResponse>> {
-		return await api.post('/auth/admin/login', { email, password }).then((res) => res.data);
+	public async login(
+		identifier: string,
+		password: string
+	): Promise<ApiResponse<AdminLoginResponse>> {
+		return await api.post('/auth/admin/login', { identifier, password }).then((res) => res.data);
 	}
 
 	/**
