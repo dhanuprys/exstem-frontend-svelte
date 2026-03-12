@@ -24,6 +24,7 @@
 
 	// Form State
 	let formName = $state('');
+	let formUsername = $state('');
 	let formEmail = $state('');
 	let formPassword = $state('');
 	let formRoleId = $state(0);
@@ -59,6 +60,7 @@
 	function openCreateDialog() {
 		isValues = null;
 		formName = '';
+		formUsername = '';
 		formEmail = '';
 		formPassword = '';
 		formRoleId = 0;
@@ -68,6 +70,7 @@
 	function openEditDialog(user: AdminUser) {
 		isValues = user;
 		formName = user.name;
+		formUsername = user.username || '';
 		formEmail = user.email;
 		formPassword = ''; // reset password field
 		formRoleId = user.role_id;
@@ -91,6 +94,7 @@
 				// Edit
 				await userService.updateUser(isValues.id, {
 					name: formName,
+					username: formUsername,
 					email: formEmail,
 					password: formPassword || undefined,
 					role_id: formRoleId
@@ -104,6 +108,7 @@
 				}
 				await userService.createUser({
 					name: formName,
+					username: formUsername,
 					email: formEmail,
 					password: formPassword,
 					role_id: formRoleId
@@ -158,6 +163,7 @@
 			<Table.Header>
 				<Table.Row>
 					<Table.Head>Nama</Table.Head>
+					<Table.Head>Username</Table.Head>
 					<Table.Head>Email</Table.Head>
 					<Table.Head>Peran</Table.Head>
 					<Table.Head class="text-right">Aksi</Table.Head>
@@ -166,16 +172,17 @@
 			<Table.Body>
 				{#if isLoading}
 					<Table.Row>
-						<Table.Cell colspan={4} class="h-24 text-center">Memuat...</Table.Cell>
+						<Table.Cell colspan={5} class="h-24 text-center">Memuat...</Table.Cell>
 					</Table.Row>
 				{:else if users.length === 0}
 					<Table.Row>
-						<Table.Cell colspan={4} class="h-24 text-center">Tidak ada data.</Table.Cell>
+						<Table.Cell colspan={5} class="h-24 text-center">Tidak ada data.</Table.Cell>
 					</Table.Row>
 				{:else}
 					{#each users as user (user.id)}
 						<Table.Row>
 							<Table.Cell>{user.name}</Table.Cell>
+							<Table.Cell>{user.username || '-'}</Table.Cell>
 							<Table.Cell>{user.email}</Table.Cell>
 							<Table.Cell>{user.role_name || '-'}</Table.Cell>
 							<Table.Cell class="text-right">
@@ -213,6 +220,7 @@
 			</Dialog.Header>
 			<UserForm
 				bind:name={formName}
+				bind:username={formUsername}
 				bind:email={formEmail}
 				bind:password={formPassword}
 				bind:roleId={formRoleId}

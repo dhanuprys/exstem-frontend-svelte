@@ -7,6 +7,7 @@
 
 	let {
 		name = $bindable(''),
+		username = $bindable(''),
 		email = $bindable(''),
 		password = $bindable(''),
 		roleId = $bindable(0),
@@ -14,6 +15,7 @@
 		isEdit = false
 	} = $props<{
 		name: string;
+		username: string;
 		email: string;
 		password?: string;
 		roleId: number;
@@ -39,6 +41,10 @@
 	<div class="grid grid-cols-4 items-center gap-4">
 		<Label for="name" class="text-right">Nama</Label>
 		<Input id="name" bind:value={name} class="col-span-3" placeholder="Nama Lengkap" />
+	</div>
+	<div class="grid grid-cols-4 items-center gap-4">
+		<Label for="username" class="text-right">Username</Label>
+		<Input id="username" bind:value={username} class="col-span-3" placeholder="username123" />
 	</div>
 	<div class="grid grid-cols-4 items-center gap-4">
 		<Label for="email" class="text-right">Email</Label>

@@ -3,6 +3,7 @@ import type { ApiResponse } from '$lib/types/api';
 
 export interface AdminUser {
 	id: number;
+	username: string;
 	email: string;
 	name: string;
 	role_id: number;
@@ -12,6 +13,7 @@ export interface AdminUser {
 }
 
 export interface CreateUserRequest {
+	username: string;
 	email: string;
 	name: string;
 	password: string;
@@ -19,6 +21,7 @@ export interface CreateUserRequest {
 }
 
 export interface UpdateUserRequest {
+	username: string;
 	email: string;
 	name: string;
 	password?: string;
