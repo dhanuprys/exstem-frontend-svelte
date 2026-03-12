@@ -34,9 +34,17 @@ export class DocxParserUtils {
 	): Question[] {
 		const questions: Question[] = [];
 
+		// Normalize any internal <br> tags into split paragraphs ONLY if the next line starts 
+		// with a structural marker (Question, Option A-E, or Answer Key).
+		// This safely handles "Soft Enters" like "<p>C: 3/4<br />D: 4/5</p>" without breaking
+		// regular line breaks inside math formulas, code blocks, or general question text.
+		const markerLookahead = /(?=\s*(?:\[SOAL|Soal\s*:|\[Kunci\]|Kunci\s*:|\[[a-eA-E]\]|[a-eA-E]\s*:))/i;
+		const brRegex = new RegExp(`<br\\s*\\/?>\\s*${markerLookahead.source}`, 'gi');
+		const normalizedHtml = htmlString.replace(brRegex, '</p><p>');
+
 		// Create an invisible detached DOM container to safely traverse mammoth's output
 		const doc = document.createElement('div');
-		doc.innerHTML = htmlString;
+		doc.innerHTML = normalizedHtml;
 
 		let currentQuestion: Partial<Question> | null = null;
 		let currentState: ParseState = 'IDLE';

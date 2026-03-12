@@ -119,7 +119,7 @@ Kunci: B`;
 		uploadedImageCount = 0;
 		try {
 			const arrayBuffer = await file.arrayBuffer();
-			const options = {
+			const options: Parameters<typeof mammoth.convertToHtml>[1] = {
 				convertImage: mammoth.images.imgElement(function (image) {
 					return image.readAsArrayBuffer().then(async function (imageBuffer) {
 						try {
