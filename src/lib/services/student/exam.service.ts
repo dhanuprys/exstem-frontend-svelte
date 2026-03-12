@@ -50,7 +50,7 @@ class StudentExamService {
 	/** Join an exam by submitting the entry token. Creates or returns an existing session. */
 	public async joinExam(examId: string, entryToken: string) {
 		return api.post<ApiResponse<{ session: ExamSession }>>(`/student/exams/${examId}/join`, {
-			entry_token: entryToken
+			entry_token: entryToken.toUpperCase().trim()
 		});
 	}
 

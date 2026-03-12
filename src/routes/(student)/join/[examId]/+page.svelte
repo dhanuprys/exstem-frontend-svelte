@@ -37,7 +37,7 @@
 		errorMessage = '';
 
 		try {
-			await studentExamService.joinExam(examId, token.trim());
+			await studentExamService.joinExam(examId, token);
 			toast.success('Berhasil bergabung! Mempersiapkan ujian...');
 			goto(`/exams/${examId}`);
 		} catch (err: any) {
