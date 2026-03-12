@@ -8,18 +8,8 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import { examService, type Exam } from '$lib/services/admin/exam.service';
-	import { subjectService, type Subject } from '$lib/services/admin/subject.service';
 	import { toast } from 'svelte-sonner';
-	import {
-		Plus,
-		Pencil,
-		Trash2,
-		FileText,
-		Loader2,
-		Activity,
-		Users,
-		Clock
-	} from '@lucide/svelte';
+	import { Plus, Pencil, Trash2, FileText, Loader2, Activity } from '@lucide/svelte';
 	import type { Pagination } from '$lib/types/api';
 
 	let exams: Exam[] = $state([]);
@@ -33,8 +23,6 @@
 	let formSubjectId: number | null = $state(null);
 	let formDuration = $state(90);
 
-	let subjects: Subject[] = $state([]);
-
 	// Delete Alert State
 	let isDeleteAlertOpen = $state(false);
 	let examToDelete: Exam | null = $state(null);
@@ -47,9 +35,6 @@
 			if (res.pagination) {
 				pagination = res.pagination;
 			}
-
-			const resSubjects = await subjectService.getSubjects();
-			subjects = resSubjects.data.data || [];
 		} catch (error) {
 			toast.error('Gagal memuat daftar ujian');
 		} finally {
@@ -274,19 +259,6 @@
 						placeholder="Misal: Ujian Akhir Semester Ganjil"
 						class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 					/>
-				</div>
-				<div class="grid gap-2">
-					<label for="subject" class="text-sm font-medium">Mata Pelajaran</label>
-					<select
-						id="subject"
-						bind:value={formSubjectId}
-						class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-					>
-						<option value={null}>-- Tanpa Mata Pelajaran --</option>
-						{#each subjects as subject}
-							<option value={subject.id}>{subject.name}</option>
-						{/each}
-					</select>
 				</div>
 				<div class="grid gap-2">
 					<label for="duration" class="text-sm font-medium"
