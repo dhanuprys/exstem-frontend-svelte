@@ -16,7 +16,6 @@
 	import { overrideAssetPath } from '$lib/utils/assets';
 
 	let { data }: PageProps = $props();
-	console.log(data.settings);
 
 	let exams: LobbyExam[] = $state([]);
 	let isLoading = $state(true);
@@ -85,8 +84,6 @@
 		}
 	}
 </script>
-
-
 
 <div class="mx-auto max-w-4xl space-y-6 p-4 sm:p-6 md:space-y-8 md:p-8">
 	<!-- Page Header -->
