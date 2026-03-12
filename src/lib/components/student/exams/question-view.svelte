@@ -2,6 +2,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { StudentQuestion } from '$lib/services/student/exam.service';
 	import { overrideAssetUrls } from '$lib/utils/assets';
+	import { imageLoader } from '$lib/actions/image-loader';
 	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
 
 	interface Props {
@@ -67,15 +68,6 @@
 
 	// shuffleMap[displayIndex] = originalIndex
 	let shuffleMap = $derived(buildShuffleMap(question.id, question.options.length));
-
-	// reverseMap[originalIndex] = displayIndex (for highlighting selected answer)
-	let reverseMap = $derived.by(() => {
-		const map: Record<number, number> = {};
-		for (let i = 0; i < shuffleMap.length; i++) {
-			map[shuffleMap[i]] = i;
-		}
-		return map;
-	});
 </script>
 
 <div class="relative flex-1">
@@ -102,7 +94,7 @@
 				</div>
 
 				<!-- Question Text -->
-				<div class="prose dark:prose-invert pointer-events-none! max-w-none [&>p]:mb-3">
+				<div use:imageLoader class="prose dark:prose-invert pointer-events-none! max-w-none [&>p]:mb-3">
 					{@html overrideAssetUrls(question.question_text)}
 				</div>
 
@@ -130,7 +122,7 @@
 							>
 								{String.fromCharCode(65 + displayIdx)}
 							</span>
-							<div class="prose dark:prose-invert pointer-events-none! max-w-none [&>p]:mb-2">
+							<div use:imageLoader class="prose dark:prose-invert pointer-events-none! max-w-none [&>p]:mb-2">
 								{@html overrideAssetUrls(option)}
 							</div>
 						</a>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip';
-	import { Clock, Loader2, Send, Wifi, WifiOff, LayoutGrid } from '@lucide/svelte';
+	import { Clock, Loader2, Send, Wifi, WifiOff, LayoutGrid, UnplugIcon } from '@lucide/svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 
 	interface Props {
@@ -50,7 +50,7 @@
 						<Wifi class="h-3.5 w-3.5 text-green-500" />
 						<span class="hidden sm:inline">Terhubung ke server</span>
 					{:else}
-						<WifiOff class="h-3.5 w-3.5 text-destructive" />
+						<UnplugIcon class="h-3.5 w-3.5 text-destructive" />
 						<span class="hidden sm:inline">Terputus dari server</span>
 					{/if}
 				</div>

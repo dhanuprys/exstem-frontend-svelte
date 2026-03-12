@@ -120,7 +120,6 @@
 				cheat_rules: cleanCheatRules
 			});
 			toast.success('Informasi ujian berhasil disimpan');
-			if (exam) exam.status = 'DRAFT';
 		} catch (err: any) {
 			const errPayload = err.response?.data?.error;
 			if (errPayload?.code === 'VALIDATION_ERROR' && errPayload.fields) {
