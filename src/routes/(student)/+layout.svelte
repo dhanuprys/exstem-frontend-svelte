@@ -36,6 +36,27 @@
 	});
 </script>
 
+<svelte:head>
+	<title>EXSTEM CBT {data.settings.school_name ? ` - ${data.settings.school_name}` : ''}</title>
+	<meta property="og:type" content="article" />
+	<meta
+		property="og:title"
+		content={data.settings.school_name ? `EXSTEM CBT - ${data.settings.school_name}` : 'EXSTEM CBT'}
+	/>
+	<meta
+		property="og:description"
+		content={data.settings.school_name
+			? `Ujian berbasis komputer di ${data.settings.school_name} menggunakan EXSTEM CBT`
+			: 'EXSTEM CBT - Ujian berbasis komputer'}
+	/>
+	<meta
+		property="og:image"
+		content={data.settings.school_logo_url
+			? overrideAssetPath(data.settings.school_logo_url)
+			: '/logo.png'}
+	/>
+</svelte:head>
+
 {#if isReady}
 	<div class="flex min-h-screen flex-col bg-background">
 		<!-- Header -->
