@@ -12,6 +12,11 @@
 		Play,
 		Loader2
 	} from '@lucide/svelte';
+	import type { PageProps } from './$types';
+	import { overrideAssetPath } from '$lib/utils/assets';
+
+	let { data }: PageProps = $props();
+	console.log(data.settings);
 
 	let exams: LobbyExam[] = $state([]);
 	let isLoading = $state(true);
@@ -82,7 +87,24 @@
 </script>
 
 <svelte:head>
-	<title>Lobby - Exstem</title>
+	<title>EXSTEM CBT {data.settings.school_name ? ` - ${data.settings.school_name}` : ''}</title>
+	<meta property="og:type" content="article" />
+	<meta
+		property="og:title"
+		content={data.settings.school_name ? `EXSTEM CBT - ${data.settings.school_name}` : 'EXSTEM CBT'}
+	/>
+	<meta
+		property="og:description"
+		content={data.settings.school_name
+			? `Ujian berbasis komputer di ${data.settings.school_name} menggunakan EXSTEM CBT`
+			: 'EXSTEM CBT - Ujian berbasis komputer'}
+	/>
+	<meta
+		property="og:image"
+		content={data.settings.school_logo_url
+			? overrideAssetPath(data.settings.school_logo_url)
+			: '/logo.png'}
+	/>
 </svelte:head>
 
 <div class="mx-auto max-w-4xl space-y-6 p-4 sm:p-6 md:space-y-8 md:p-8">
