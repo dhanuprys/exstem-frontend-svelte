@@ -19,14 +19,15 @@ export interface QBank {
 	description: string;
 	subject_id?: number | null;
 	subject_name?: string;
+	question_count?: number;
 }
 
 class QuestionService {
-	public async getQBanks(page = 1, perPage = 10, search = '') {
+	public async getQBanks(page = 1, perPage = 10, search = '', includeCounts = false) {
 		const res = await api.get<ApiResponse<{ qbanks: QBank[]; pagination: Pagination }>>(
 			'/admin/qbanks',
 			{
-				params: { page, per_page: perPage, search }
+				params: { page, per_page: perPage, search, include_counts: includeCounts }
 			}
 		);
 		return res;

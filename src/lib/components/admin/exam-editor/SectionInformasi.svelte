@@ -44,11 +44,21 @@
 
 	let selectedQBank = $derived(qbanksList.find((q) => q.id === formQBankID) || null);
 
+	$effect(() => {
+		// Realtime clamping: if user types a number higher than available questions, snap it back instantly
+		if (
+			selectedQBank?.question_count !== undefined && 
+			formQuestionCount > selectedQBank.question_count
+		) {
+			formQuestionCount = selectedQBank.question_count;
+		}
+	});
+
 	async function searchQBanks(query: string = '') {
 		isSearchingQBank = true;
 		try {
-			// Fetch up to 10 top results based on query
-			const res = await questionService.getQBanks(1, 10, query);
+			// Fetch up to 50 top results based on query, asking server to include exact question capabilities physically
+			const res = await questionService.getQBanks(1, 50, query, true);
 			qbanksList = (res.data as any)?.qbanks || res.data?.data || [];
 		} catch (error) {
 			console.error('Failed to fetch qbanks', error);
@@ -149,7 +159,7 @@
 				>
 					<span class="truncate pr-4">
 						{selectedQBank
-							? selectedQBank.name
+							? `${selectedQBank.name} ${selectedQBank.question_count !== undefined ? '(' + selectedQBank.question_count + ' Soal)' : ''}`
 							: '-- Tanpa Bank Soal (Gunakan Soal Ujian Tersendiri) --'}
 					</span>
 					<ChevronsUpDown class="h-4 w-4 shrink-0 opacity-50" />
@@ -204,6 +214,9 @@
 											</span>
 										{/if}
 										{qbank.name}
+										{#if qbank.question_count !== undefined}
+											<span class="ml-1 text-muted-foreground">({qbank.question_count} Soal)</span>
+										{/if}
 									</button>
 								{/each}
 
@@ -257,10 +270,14 @@
 					type="number"
 					bind:value={formQuestionCount}
 					min="1"
+					max={selectedQBank?.question_count !== undefined ? selectedQBank.question_count : undefined}
 					aria-invalid={!!formErrors.question_count}
 					class="flex h-11 w-full rounded-md border border-input bg-background px-4 py-2 text-sm shadow-sm transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none"
 				/>
 				<Field.Description>
+					{#if selectedQBank?.question_count !== undefined}
+						<strong class="text-primary tracking-wide">Maksimal Tersedia: {selectedQBank.question_count}.</strong>
+					{/if}	
 					Jika diatur lebih kecil dari jumlah soal pada bank soal, soal akan diambil secara acak.
 				</Field.Description>
 				{#if formErrors.question_count}

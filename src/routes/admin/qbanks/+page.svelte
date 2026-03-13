@@ -36,7 +36,7 @@
 	async function loadData(page = 1) {
 		isLoading = true;
 		try {
-			const res = await questionService.getQBanks(page, pagination.per_page, searchQuery);
+			const res = await questionService.getQBanks(page, pagination.per_page, searchQuery, true);
 			qbanksList = (res.data as any)?.qbanks || res.data?.data || [];
 			if (res.data?.pagination) {
 				pagination = res.data.pagination;
@@ -169,6 +169,7 @@
 					<Table.Head>Mata Pelajaran</Table.Head>
 					<Table.Head>Nama</Table.Head>
 					<Table.Head>Deskripsi</Table.Head>
+					<Table.Head class="text-center">Jumlah Soal</Table.Head>
 					<Table.Head class="text-right">Aksi</Table.Head>
 				</Table.Row>
 			</Table.Header>
@@ -179,7 +180,7 @@
 					</Table.Row>
 				{:else if qbanksList.length === 0}
 					<Table.Row>
-						<Table.Cell colspan={3} class="h-24 text-center">Tidak ada bank soal.</Table.Cell>
+						<Table.Cell colspan={4} class="h-24 text-center">Tidak ada bank soal.</Table.Cell>
 					</Table.Row>
 				{:else}
 					{#each qbanksList as qbank (qbank.id)}
@@ -197,6 +198,9 @@
 							</Table.Cell>
 							<Table.Cell class="font-medium">{qbank.name}</Table.Cell>
 							<Table.Cell>{qbank.description}</Table.Cell>
+							<Table.Cell class="text-center font-medium">
+								{qbank.question_count ?? 0}
+							</Table.Cell>
 							<Table.Cell class="text-right">
 								<div class="flex justify-end gap-2">
 									<Button variant="ghost" size="icon" onclick={() => openEditDialog(qbank)}>

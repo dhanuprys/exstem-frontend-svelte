@@ -86,7 +86,8 @@
 			const resMajors = await majorService.getMajors();
 			majorsList = resMajors.data.data.majors || [];
 
-			const resQBanks = await questionService.getQBanks(1, 1000);
+			// Pull complete active bank lists with verified capacity sums for the overarching logic
+			const resQBanks = await questionService.getQBanks(1, 1000, '', true);
 			qbanksList = Array.isArray(resQBanks)
 				? resQBanks
 				: (resQBanks as any).data || (resQBanks as any).qbanks || [];
@@ -101,6 +102,20 @@
 	async function saveInformation() {
 		isSaving = true;
 		formErrors = {}; // Reset errors before saving
+
+		// Capacity Pre-flight safety execution
+		if (formQBankID) {
+			const activeBank = qbanksList.find((q) => q.id === formQBankID);
+			if (activeBank && activeBank.question_count !== undefined) {
+				if (formQuestionCount > activeBank.question_count) {
+					formErrors.question_count = `Maksimal soal di bank terpilih adalah ${activeBank.question_count}`;
+					toast.error('Jumlah permintaan soal melebihi batas muatan bank ini!');
+					isSaving = false;
+					return;
+				}
+			}
+		}
+
 		try {
 			// Clean up cheat rules (omit false/empty)
 			const cleanCheatRules: Record<string, boolean> = {};
