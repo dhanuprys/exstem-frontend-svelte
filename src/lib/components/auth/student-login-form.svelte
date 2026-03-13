@@ -33,7 +33,7 @@
 
 		const result = await profileStore.login(nisn, password);
 		if (!result?.success) {
-			error = result?.error?.message || result?.error?.code || 'Login failed';
+			error = result?.error?.message || result?.error?.code || 'Login gagal';
 		}
 
 		isLoading = false;
@@ -48,9 +48,12 @@
 >
 	<FieldGroup>
 		<div class="flex flex-col items-center gap-1 text-center">
-			<h1 class="text-2xl font-bold">Login to your account</h1>
-			<p class="text-sm text-balance text-muted-foreground">Masukkan username dan password Anda</p>
+			<h1 class="text-2xl font-bold">Masuk ke akun Anda</h1>
+			<p class="text-sm text-balance text-muted-foreground">
+				Masukkan username dan kata sandi Anda
+			</p>
 		</div>
+
 		<Field>
 			<FieldLabel for="username-{id}">Username</FieldLabel>
 			<Input
@@ -61,25 +64,32 @@
 				bind:value={nisn}
 			/>
 		</Field>
+
 		<Field>
 			<div class="flex items-center">
-				<FieldLabel for="password-{id}">Password</FieldLabel>
-				<a href="##" class="ms-auto text-sm underline-offset-4 hover:underline"> Lupa password? </a>
+				<FieldLabel for="password-{id}">Kata Sandi</FieldLabel>
+				<a href="##" class="ms-auto text-sm underline-offset-4 hover:underline">
+					Lupa kata sandi?
+				</a>
 			</div>
 			<Input id="password-{id}" type="password" required bind:value={password} />
 		</Field>
+
 		{#if error}
 			<div class="text-sm text-red-500">{error}</div>
 		{/if}
+
 		<Field>
 			<Button type="submit" disabled={isLoading}>
 				{#if isLoading}
 					<Loader2 class="mr-2 h-4 w-4 animate-spin" />
 				{/if}
-				Login
+				Masuk
 			</Button>
 		</Field>
-		<FieldSeparator>Or continue with</FieldSeparator>
+
+		<FieldSeparator>Atau lanjutkan dengan</FieldSeparator>
+
 		<Field>
 			<FieldDescription class="text-center">
 				Mengalami kendala?

@@ -31,7 +31,7 @@
 
 		const result = await profileStore.login(identifier, password);
 		if (!result?.success) {
-			error = result?.error?.message || result?.error?.code || 'Login failed';
+			error = result?.error?.message || result?.error?.code || 'Login gagal';
 		}
 
 		isLoading = false;
@@ -40,26 +40,26 @@
 
 <Card.Root class="mx-auto w-full max-w-sm">
 	<Card.Header>
-		<Card.Title class="text-2xl">Login</Card.Title>
-		<Card.Description>Enter your username or email below to login</Card.Description>
+		<Card.Title class="text-2xl">Masuk</Card.Title>
+		<Card.Description>Masukkan username atau email Anda di bawah ini untuk masuk</Card.Description>
 	</Card.Header>
 	<Card.Content>
 		<form onsubmit={handleLogin}>
 			<FieldGroup>
 				<Field>
-					<FieldLabel for="identifier-{id}">Username or Email</FieldLabel>
+					<FieldLabel for="identifier-{id}">Username atau Email</FieldLabel>
 					<Input
 						id="identifier-{id}"
 						type="text"
-						placeholder="admin OR m@example.com"
+						placeholder="admin ATAU m@example.com"
 						required
 						bind:value={identifier}
 					/>
 				</Field>
 				<Field>
 					<div class="flex items-center">
-						<FieldLabel for="password-{id}">Password</FieldLabel>
-						<a href="##" class="ms-auto inline-block text-sm underline"> Forgot your password? </a>
+						<FieldLabel for="password-{id}">Kata Sandi</FieldLabel>
+						<a href="##" class="ms-auto inline-block text-sm underline"> Lupa kata sandi? </a>
 					</div>
 					<Input id="password-{id}" type="password" required bind:value={password} />
 				</Field>
@@ -71,7 +71,7 @@
 						{#if isLoading}
 							<Loader2 class="mr-2 h-4 w-4 animate-spin" />
 						{/if}
-						Login
+						Masuk
 					</Button>
 				</Field>
 			</FieldGroup>
