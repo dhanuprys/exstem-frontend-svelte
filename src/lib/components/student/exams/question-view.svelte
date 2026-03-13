@@ -68,7 +68,27 @@
 
 	// shuffleMap[displayIndex] = originalIndex
 	let shuffleMap = $derived(buildShuffleMap(question.id, question.options.length));
+
+	function handleKeydown(e: KeyboardEvent) {
+		// Ignore if user is inside an input (just in case)
+		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+		const key = e.key.toUpperCase();
+		const validKeys = ['A', 'B', 'C', 'D', 'E'];
+		const index = validKeys.indexOf(key);
+
+		if (index !== -1 && index < shuffleMap.length) {
+			const originalIdx = shuffleMap[index];
+			const isSelected = selectedAnswer === String(originalIdx);
+			onAnswer(question.id, originalIdx, isSelected);
+			if (isTempAnswer) {
+				onTempAnswer(question.id, false);
+			}
+		}
+	}
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <div class="relative flex-1">
 	<div class="absolute inset-0 flex flex-col">
